@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.4
+- Fond de carte détaillé : seule la France est affichée, les autres pays sont masqués.
+
 ## Nouveautés de la 1.2.3
 - Fond de carte détaillé réparé : il affichait « API KEY REQUIRED » (le fournisseur CARTO exige désormais une clé). Il utilise maintenant le fond sombre d'Esri, avec les noms de villes.
 
