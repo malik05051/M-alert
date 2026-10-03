@@ -24,6 +24,7 @@
       alertLevels: {},    // code -> niveau d'alerte M-Alert le plus élevé
       highlighted: new Set(),
       selected: new Set(),
+      blink: true,        // clignotement des départements en alerte rouge ou majeure
     };
     const layers = {};    // code -> layer
 
@@ -76,7 +77,7 @@
       if (state.alertLevels[code] || state.selected.has(code) || state.highlighted.has(code)) layer.bringToFront();
     }
 
-    // Clignotement des départements en alerte : un voile sombre posé dans son propre panneau, dont
+    // Clignotement des départements en alerte rouge ou majeure : un voile sombre posé dans son propre panneau, dont
     // seule l'opacité est animée (par la carte graphique, sans redessiner la carte). Animer
     // fill-opacity sur les contours obligeait à redessiner tout le SVG ~60 fois par seconde.
     // Le contour blanc est tracé au-dessus du voile pour rester net.
@@ -94,7 +95,7 @@
 
     function renderPulse() {
       const codes = Object.keys(state.alertLevels).filter((c) => layers[c]).sort();
-      const key = codes.map((c) => `${c}:${state.alertLevels[c]}:${state.selected.has(c) ? 1 : 0}`).join(',');
+      const key = `${state.blink}|` + codes.map((c) => `${c}:${state.alertLevels[c]}:${state.selected.has(c) ? 1 : 0}`).join(',');
       if (key === pulseKey) return;
       pulseKey = key;
       pulseGroup.clearLayers();
@@ -102,8 +103,11 @@
       let max = 0;
       for (const c of codes) {
         const latlngs = layers[c].getLatLngs();
-        max = Math.max(max, state.alertLevels[c]);
-        pulseGroup.addLayer(L.polygon(latlngs, { renderer: pulseRenderer, interactive: false, stroke: false, fillColor: '#0b1220', fillOpacity: 1 }));
+        // Seuls le rouge et la majeure clignotent (désactivable dans les réglages).
+        if (state.blink && state.alertLevels[c] >= 4) {
+          max = Math.max(max, state.alertLevels[c]);
+          pulseGroup.addLayer(L.polygon(latlngs, { renderer: pulseRenderer, interactive: false, stroke: false, fillColor: '#0b1220', fillOpacity: 1 }));
+        }
         if (!state.selected.has(c)) {
           edgeGroup.addLayer(L.polygon(latlngs, { renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', weight: 3.5 }));
         }
@@ -168,6 +172,11 @@
       setSelected(codes) {
         state.selected = new Set(codes || []);
         refreshAll();
+      },
+
+      setBlink(enabled) {
+        state.blink = Boolean(enabled);
+        renderPulse();
       },
 
       setTiles(enabled) {

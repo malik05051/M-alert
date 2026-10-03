@@ -1,5 +1,11 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.0
+- **Beaucoup plus léger** : la carte ne fait plus ramer l'ordinateur, et les animations se mettent en pause quand M-Alert est caché dans la zone de notification.
+- **Sons d'alerte** : un son pour les informations, un pour le jaune et l'orange, un pour le rouge, et un pour la majeure, les tsunamis et les vagues-submersion.
+- **Alertes modifiées** : une alerte corrigée est mise à jour en direct ; elle sonne de nouveau si le niveau monte ou si votre département est ajouté.
+- **Clignotement** réservé aux départements en alerte rouge ou majeure, désactivable dans ⚙ Réglages.
+
 ## Installation
 
 ### Windows 10 / 11
