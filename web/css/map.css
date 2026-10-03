@@ -14,6 +14,7 @@
 .leaflet-interactive:focus { outline: none; }
 path.dep-alert { animation: dep-pulse 1.2s ease-in-out infinite; }
 path.dep-alert-4 { animation-duration: .7s; }
+path.dep-alert-5 { animation-duration: .45s; }
 @keyframes dep-pulse { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .15; } }
 
 
@@ -29,4 +30,5 @@ path.dep-alert-4 { animation-duration: .7s; }
 }
 .alert-pin::after { animation-delay: .9s; }
 .alert-pin.lvl-4::before, .alert-pin.lvl-4::after { animation-duration: 1.1s; }
+.alert-pin.lvl-5::before, .alert-pin.lvl-5::after { animation-duration: .7s; }
 @keyframes pin-wave { from { transform: scale(1); opacity: .9; } to { transform: scale(4.5); opacity: 0; } }

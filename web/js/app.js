@@ -280,7 +280,7 @@
     ov.className = `alert-overlay lvl-${alert.level}`;
     ov.style.setProperty('--c', lv.color);
     ov.style.setProperty('--ct', lv.text);
-    $('ovLevel').textContent = alert.level === 1 ? 'Information' : `Alerte ${lv.name}`;
+    $('ovLevel').textContent = M.levelLabel(alert.level);
     $('ovPhen').textContent = `${ph.icon} ${ph.name}`;
     $('ovTest').classList.toggle('hidden', !alert.test);
     $('ovTime').textContent = M.formatDateTime(alert.createdAt);
@@ -369,7 +369,7 @@
     const lv = LEVELS[alert.level];
     const prefix = alert.test ? '[TEST] ' : '';
     systemNotification(
-      `${prefix}${M.alertKind(alert).icon} ${alert.level === 1 ? 'Information' : 'Alerte ' + lv.name} — ${alert.title}`,
+      `${prefix}${M.alertKind(alert).icon} ${M.levelLabel(alert.level)} — ${alert.title}`,
       `${M.departmentsLabel(alert.departments, 3)}\n${alert.description}`,
       { tag: alert.id, urgent: alert.level >= 3 },
     );

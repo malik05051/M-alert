@@ -1,7 +1,8 @@
 /* M-Alert — son d'alerte.
  *
  * Pour utiliser vos propres sons, déposez des fichiers dans web/sounds/ :
- *   alerte-1.mp3 (information), alerte-2.mp3 (jaune), alerte-3.mp3 (orange), alerte-4.mp3 (rouge)
+ *   alerte-1.mp3 (information), alerte-2.mp3 (jaune), alerte-3.mp3 (orange), alerte-4.mp3 (rouge),
+ *   alerte-5.mp3 (majeure)
  *   ou un seul fichier alerte.mp3 utilisé pour tous les niveaux.
  * Si aucun fichier n'est présent, une sirène synthétique est jouée.
  */
@@ -85,15 +86,19 @@
       for (let i = 0; i < 3; i++) beep(t0 + i * 0.4, 0.25, 988, 'triangle');
       return 1.4;
     }
-    // Orange / rouge : sirène montante-descendante.
-    const dur = level === 4 ? 4 : 3;
+    // Orange / rouge / majeure : sirène montante-descendante, de plus en plus rapide et aiguë.
+    const siren = {
+      3: { dur: 3, type: 'square', sweep: 0.75, low: 650, high: 1000 },
+      4: { dur: 4, type: 'sawtooth', sweep: 0.5, low: 600, high: 1300 },
+      5: { dur: 5, type: 'sawtooth', sweep: 0.3, low: 700, high: 1600 },
+    }[Math.min(level, 5)];
+    const dur = siren.dur;
     const o = c.createOscillator();
-    o.type = level === 4 ? 'sawtooth' : 'square';
-    const sweep = level === 4 ? 0.5 : 0.75;
-    for (let t = 0; t < dur; t += sweep) {
-      o.frequency.setValueAtTime(level === 4 ? 600 : 650, t0 + t);
-      o.frequency.linearRampToValueAtTime(level === 4 ? 1300 : 1000, t0 + t + sweep / 2);
-      o.frequency.linearRampToValueAtTime(level === 4 ? 600 : 650, t0 + t + sweep);
+    o.type = siren.type;
+    for (let t = 0; t < dur; t += siren.sweep) {
+      o.frequency.setValueAtTime(siren.low, t0 + t);
+      o.frequency.linearRampToValueAtTime(siren.high, t0 + t + siren.sweep / 2);
+      o.frequency.linearRampToValueAtTime(siren.low, t0 + t + siren.sweep);
     }
     const filter = c.createBiquadFilter();
     filter.type = 'lowpass';

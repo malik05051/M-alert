@@ -1,7 +1,7 @@
 /* M-Alert — service worker : notifications push quand l'application est fermée. */
 'use strict';
 
-const LEVELS = { 1: 'Information', 2: 'Jaune', 3: 'Orange', 4: 'Rouge' };
+const LEVELS = { 1: 'Information', 2: 'Jaune', 3: 'Orange', 4: 'Rouge', 5: 'Majeure' };
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
@@ -27,7 +27,7 @@ self.addEventListener('push', (event) => {
       body = `Départements : ${deps}`;
     } else {
       const prefix = alert.test ? '[TEST] ' : '';
-      title = `${prefix}${alert.level === 1 ? 'Information' : 'Alerte ' + LEVELS[alert.level]} — ${alert.title}`;
+      title = `${prefix}${alert.level === 1 ? 'Information' : alert.level === 5 ? 'ALERTE MAJEURE' : 'Alerte ' + LEVELS[alert.level]} — ${alert.title}`;
       body = `Départements : ${deps}\n${alert.description}`;
     }
     await self.registration.showNotification(title, {

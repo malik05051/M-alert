@@ -10,7 +10,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 
 ## Fonctionnalités
 
-- **Carte interactive** des départements, colorés selon la **vigilance Météo-France** (vert, jaune, orange, rouge), pour aujourd'hui et demain. Survolez un département pour voir les phénomènes (orages, vent, crues…).
+- **Carte interactive** des départements, colorés selon la **vigilance Météo-France** (vert, jaune, orange, rouge, et rose pour le niveau **majeur** fixé par M-Alert), pour aujourd'hui et demain. Survolez un département pour voir les phénomènes (orages, vent, crues…).
 - **Alerte plein écran** dans le style de JQuake / GlobalQuake : cadre clignotant à la couleur du niveau, titre, départements concernés, description et consignes.
 - **Son d'alerte** différent selon le niveau (information, jaune, orange, rouge). Pour l'orange et le rouge, le son peut être répété jusqu'à « J'ai compris ».
 - **Notification système** avec la description de l'alerte.
@@ -79,6 +79,7 @@ Déposez vos fichiers MP3 dans `web/sounds/` :
 | `alerte-2.mp3` | Jaune |
 | `alerte-3.mp3` | Orange |
 | `alerte-4.mp3` | Rouge |
+| `alerte-5.mp3` | Majeure (rose) |
 | `alerte.mp3` | Son unique, utilisé si le fichier du niveau n'existe pas |
 
 Sans fichier, une sirène synthétique est jouée. Réglages > **Tester une alerte** permet de vérifier le son, l'affichage et les notifications.

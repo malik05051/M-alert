@@ -63,7 +63,7 @@
       const path = layer.getElement && layer.getElement();
       if (path) {
         path.classList.toggle('dep-alert', Boolean(state.alertLevels[code]));
-        for (let l = 1; l <= 4; l++) path.classList.toggle(`dep-alert-${l}`, state.alertLevels[code] === l);
+        for (let l = 1; l <= 5; l++) path.classList.toggle(`dep-alert-${l}`, state.alertLevels[code] === l);
       }
       // Les contours importants passent au premier plan pour rester visibles.
       if (state.alertLevels[code] || state.selected.has(code) || state.highlighted.has(code)) layer.bringToFront();

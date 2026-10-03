@@ -36,13 +36,15 @@
     blocus: 'Évitez le secteur concerné et prévoyez un itinéraire de délestage. Attendez-vous à des perturbations de circulation et des transports. Suivez les consignes des forces de l\'ordre et des autorités.',
   };
 
-  // Couleurs de vigilance (1 vert, 2 jaune, 3 orange, 4 rouge).
+  // Couleurs de vigilance (1 vert, 2 jaune, 3 orange, 4 rouge, 5 majeure en rose).
   const VIGILANCE = {
     0: { name: 'Pas de données', color: '#3a4556' },
     1: { name: 'Vert', color: '#2f9e44' },
     2: { name: 'Jaune', color: '#ffe11a' },
     3: { name: 'Orange', color: '#ff9300' },
     4: { name: 'Rouge', color: '#e0141e' },
+    // Niveau majeur, au-delà du rouge : saisie manuelle uniquement (Météo-France s'arrête au rouge).
+    5: { name: 'Majeure', color: '#fe05fd' },
   };
 
   // Niveaux des alertes M-Alert.
@@ -51,6 +53,7 @@
     2: { name: 'Jaune', color: '#ffe11a', text: '#1b1b1b' },
     3: { name: 'Orange', color: '#ff9300', text: '#1b1b1b' },
     4: { name: 'Rouge', color: '#e0141e', text: '#fff' },
+    5: { name: 'Majeure', color: '#fe05fd', text: '#fff' },
   };
 
   // Conseils de comportement inspirés des consignes de vigilance Météo-France.
@@ -66,6 +69,13 @@
     8: 'Renoncez aux sorties hors des pistes balisées. Respectez les consignes des stations et des autorités.',
     9: 'Tenez-vous éloignés des côtes et des estuaires. Ne vous promenez pas en bord de mer. Mettez vos biens à l\'abri des submersions.',
   };
+
+  /** « Information », « Alerte rouge », « ALERTE MAJEURE »… */
+  function levelLabel(level) {
+    if (level === 1) return 'Information';
+    if (level === 5) return 'Alerte majeure';
+    return `Alerte ${LEVELS[level].name.toLowerCase()}`;
+  }
 
   function categoryOf(alert) {
     return alert && CATEGORIES[alert.category] ? alert.category : 'meteo';
@@ -195,7 +205,7 @@
 
   window.MAlert = {
     PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
-    categoryOf, alertKind, adviceFor,
+    categoryOf, alertKind, adviceFor, levelLabel,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,
