@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.1
+- Contour des départements en alerte plus fin.
+- La carte ne se dézoome plus au-delà de la France entière.
+
 ## Nouveautés de la 1.2.0
 - **Beaucoup plus léger** : la carte ne fait plus ramer l'ordinateur, et les animations se mettent en pause quand M-Alert est caché dans la zone de notification.
 - **Sons d'alerte** : un son pour les informations, un pour le jaune et l'orange, un pour le rouge, et un pour la majeure, les tsunamis et les vagues-submersion.
