@@ -3,5 +3,5 @@
  * pour que les utilisateurs n'aient rien à saisir. Elle reste modifiable dans les réglages.
  */
 window.MALERT_CONFIG = {
-  serverUrl: 'http://localhost:8080',
+  serverUrl: 'https://m-alert-sender.onrender.com',
 };
