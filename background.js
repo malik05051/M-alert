@@ -42,6 +42,8 @@ function linuxAutostartFile(id) {
 /** Commande qui relance l'application (AppImage, .deb ou mode développement). */
 function launchCommand() {
   const quote = (s) => `"${String(s).replace(/(["`$\\])/g, '\\$1')}"`;
+  // Paquet Arch : le lanceur /usr/bin/m-alert indique son chemin, stable même si Electron change.
+  if (process.env.MALERT_EXEC) return `${quote(process.env.MALERT_EXEC)} ${HIDDEN_ARG}`;
   if (process.env.APPIMAGE) return `${quote(process.env.APPIMAGE)} ${HIDDEN_ARG}`;
   if (app.isPackaged) return `${quote(process.execPath)} ${HIDDEN_ARG}`;
   return `${quote(process.execPath)} ${quote(app.getAppPath())} ${HIDDEN_ARG}`;
