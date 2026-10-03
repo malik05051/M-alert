@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.2
+- Carte plus sobre : les départements en alerte ne clignotent plus, ont la même luminosité que la vigilance et les mêmes frontières noires.
+
 ## Nouveautés de la 1.2.1
 - Contour des départements en alerte plus fin.
 - La carte ne se dézoome plus au-delà de la France entière.
