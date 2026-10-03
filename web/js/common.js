@@ -13,6 +13,8 @@
     7: { name: 'Grand froid', icon: '🥶' },
     8: { name: 'Avalanches', icon: '🏔️' },
     9: { name: 'Vagues-submersion', icon: '🌊' },
+    // Hors vigilance Météo-France : alertes M-Alert uniquement.
+    10: { name: 'Blocus / manifestation', icon: '🚧' },
   };
 
   // Couleurs de vigilance (1 vert, 2 jaune, 3 orange, 4 rouge).
@@ -44,6 +46,7 @@
     7: 'Évitez les expositions prolongées au froid. Habillez-vous chaudement en plusieurs couches. Ne surchauffez pas, aérez votre logement. Signalez les personnes sans abri au 115.',
     8: 'Renoncez aux sorties hors des pistes balisées. Respectez les consignes des stations et des autorités.',
     9: 'Tenez-vous éloignés des côtes et des estuaires. Ne vous promenez pas en bord de mer. Mettez vos biens à l\'abri des submersions.',
+    10: 'Évitez le secteur concerné et prévoyez un itinéraire de délestage. Attendez-vous à des perturbations de circulation et des transports. Suivez les consignes des forces de l\'ordre et des autorités.',
   };
 
   function escapeHtml(s) {
