@@ -3,7 +3,7 @@
   'use strict';
 
   const M = window.MAlert;
-  const { PHENOMENA, VIGILANCE, LEVELS, ADVICE, escapeHtml } = M;
+  const { PHENOMENA, VIGILANCE, LEVELS, escapeHtml } = M;
   const native = window.malertNative || null; // présent dans l'application de bureau (Electron)
   const $ = (id) => document.getElementById(id);
 
@@ -14,6 +14,7 @@
     extra: [],
     all: false,
     minLevel: 1,
+    categories: Object.keys(M.CATEGORIES), // catégories d'alertes reçues
     sound: true,
     volume: 0.8,
     repeat: true,
@@ -162,7 +163,7 @@
 
   function alertItemHtml(a) {
     const lv = LEVELS[a.level];
-    const ph = PHENOMENA[a.phenomenon] || PHENOMENA[0];
+    const ph = M.alertKind(a);
     return `<div class="alert-item ${isMine(a) ? 'mine' : ''}" data-alert="${a.id}" style="border-left-color:${lv.color}">
       <div class="t"><span class="tag" style="background:${lv.color};color:${lv.text}">${lv.name}</span>${a.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(a.title)}</div>
       <div class="m">${ph.icon} ${escapeHtml(ph.name)} · ${escapeHtml(M.departmentsLabel(a.departments, 3))}</div>
@@ -260,8 +261,13 @@
 
   // ---------- Alerte plein écran, son et notification ----------
 
+  function wantsCategory(alert) {
+    return settings.categories.includes(M.categoryOf(alert));
+  }
+
   function matchesMe(alert) {
     if (alert.level < settings.minLevel) return false;
+    if (!wantsCategory(alert)) return false;
     if (settings.all) return true;
     return isMine(alert);
   }
@@ -269,7 +275,7 @@
   function showOverlay(alert, { silent } = {}) {
     current = alert;
     const lv = LEVELS[alert.level];
-    const ph = PHENOMENA[alert.phenomenon] || PHENOMENA[0];
+    const ph = M.alertKind(alert);
     const ov = $('alertOverlay');
     ov.className = `alert-overlay lvl-${alert.level}`;
     ov.style.setProperty('--c', lv.color);
@@ -281,7 +287,7 @@
     $('ovTitle').textContent = alert.title;
     $('ovDeps').textContent = M.departmentsLabel(alert.departments, 8);
     $('ovDesc').textContent = alert.description;
-    const advice = alert.instructions || (alert.level >= 3 ? ADVICE[alert.phenomenon] : '');
+    const advice = M.adviceFor(alert);
     $('ovAdviceWrap').classList.toggle('hidden', !advice);
     $('ovAdvice').textContent = advice || '';
     $('ovValid').textContent = `Valable jusqu'au ${M.formatDateTime(alert.expiresAt)}`;
@@ -331,6 +337,11 @@
 
   function trigger(alert) {
     if (seen.has(alert.id)) return;
+    // Catégorie désactivée dans les réglages : aucune alerte sonore ni message.
+    if (!wantsCategory(alert)) {
+      markSeen(alert.id);
+      return;
+    }
     if (!matchesMe(alert)) {
       markSeen(alert.id);
       const lv = LEVELS[alert.level];
@@ -358,7 +369,7 @@
     const lv = LEVELS[alert.level];
     const prefix = alert.test ? '[TEST] ' : '';
     systemNotification(
-      `${prefix}${alert.level === 1 ? 'Information' : 'Alerte ' + lv.name} — ${alert.title}`,
+      `${prefix}${M.alertKind(alert).icon} ${alert.level === 1 ? 'Information' : 'Alerte ' + lv.name} — ${alert.title}`,
       `${M.departmentsLabel(alert.departments, 3)}\n${alert.description}`,
       { tag: alert.id, urgent: alert.level >= 3 },
     );
@@ -544,7 +555,9 @@
       const res = await fetch(`${server}/api/push/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel }),
+        body: JSON.stringify({
+          subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel, categories: settings.categories,
+        }),
       });
       if (!res.ok) throw new Error(`serveur HTTP ${res.status}`);
       state.textContent = '✅ Notifications push actives sur cet appareil.';
@@ -570,6 +583,9 @@
 
   const dlg = $('settings');
   const departments = M.departmentList();
+
+  $('setCategories').innerHTML = Object.entries(M.CATEGORIES).map(([id, c]) =>
+    `<label class="check"><input type="checkbox" value="${id}"> ${c.icon} ${escapeHtml(c.name)}</label>`).join('');
 
   function fillDepartmentInputs() {
     $('setDep').innerHTML = '<option value="">— Choisir —</option>' +
@@ -615,6 +631,7 @@
     $('setExtra').querySelectorAll('label').forEach((l) => l.classList.remove('hidden'));
     $('setAll').checked = settings.all;
     $('setMinLevel').value = String(settings.minLevel);
+    $('setCategories').querySelectorAll('input').forEach((i) => { i.checked = settings.categories.includes(i.value); });
     $('setSound').checked = settings.sound;
     $('setVolume').value = String(settings.volume);
     $('setRepeat').checked = settings.repeat;
@@ -656,6 +673,7 @@
       extra: [...$('setExtra').querySelectorAll('input:checked')].map((i) => i.value).filter((c) => c !== dep),
       all: $('setAll').checked,
       minLevel: Number($('setMinLevel').value),
+      categories: [...$('setCategories').querySelectorAll('input:checked')].map((i) => i.value),
       sound: $('setSound').checked,
       volume: Number($('setVolume').value),
       repeat: $('setRepeat').checked,

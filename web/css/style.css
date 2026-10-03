@@ -197,6 +197,7 @@ dialog.settings legend { font-size: 12px; text-transform: uppercase; letter-spac
 .check input { margin-top: 3px; accent-color: var(--accent); }
 input[type="range"] { accent-color: var(--accent); }
 .row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.cat-checks { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .chips-picker {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px;
   max-height: 150px; overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 6px;

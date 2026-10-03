@@ -19,7 +19,8 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
 - La vigilance peut être **corrigée ou saisie à la main** depuis M-Alert-sender, que l'API Météo-France fonctionne ou soit en panne : badges « Vigilance corrigée » / « Vigilance manuelle » et mention « ✎ corrigé par M-Alert » sur les départements concernés.
-- **Réglages** : département principal, autres départements suivis, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
+- Deux **catégories d'alertes** : 🌦️ Météo et 🚧 Blocus / manifestation (chacune peut être désactivée dans les réglages).
+- **Réglages** : département principal, autres départements suivis, catégories d'alertes reçues, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
 
 ## Utilisation
 

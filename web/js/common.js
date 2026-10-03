@@ -13,8 +13,16 @@
     7: { name: 'Grand froid', icon: '🥶' },
     8: { name: 'Avalanches', icon: '🏔️' },
     9: { name: 'Vagues-submersion', icon: '🌊' },
-    // Hors vigilance Météo-France : alertes M-Alert uniquement.
-    10: { name: 'Blocus / manifestation', icon: '🚧' },
+  };
+
+  // Catégories d'alertes M-Alert. Le phénomène ne concerne que la catégorie « meteo ».
+  const CATEGORIES = {
+    meteo: { name: 'Météo', icon: '🌦️' },
+    blocus: { name: 'Blocus / manifestation', icon: '🚧' },
+  };
+
+  const CATEGORY_ADVICE = {
+    blocus: 'Évitez le secteur concerné et prévoyez un itinéraire de délestage. Attendez-vous à des perturbations de circulation et des transports. Suivez les consignes des forces de l\'ordre et des autorités.',
   };
 
   // Couleurs de vigilance (1 vert, 2 jaune, 3 orange, 4 rouge).
@@ -46,8 +54,26 @@
     7: 'Évitez les expositions prolongées au froid. Habillez-vous chaudement en plusieurs couches. Ne surchauffez pas, aérez votre logement. Signalez les personnes sans abri au 115.',
     8: 'Renoncez aux sorties hors des pistes balisées. Respectez les consignes des stations et des autorités.',
     9: 'Tenez-vous éloignés des côtes et des estuaires. Ne vous promenez pas en bord de mer. Mettez vos biens à l\'abri des submersions.',
-    10: 'Évitez le secteur concerné et prévoyez un itinéraire de délestage. Attendez-vous à des perturbations de circulation et des transports. Suivez les consignes des forces de l\'ordre et des autorités.',
   };
+
+  function categoryOf(alert) {
+    return alert && CATEGORIES[alert.category] ? alert.category : 'meteo';
+  }
+
+  /** Icône et libellé d'une alerte : le phénomène pour la météo, sinon la catégorie. */
+  function alertKind(alert) {
+    const cat = categoryOf(alert);
+    if (cat !== 'meteo') return CATEGORIES[cat];
+    return PHENOMENA[alert.phenomenon] || PHENOMENA[0];
+  }
+
+  /** Consignes : celles saisies, sinon les consignes types pour l'orange et le rouge. */
+  function adviceFor(alert) {
+    if (alert.instructions) return alert.instructions;
+    if (alert.level < 3) return '';
+    const cat = categoryOf(alert);
+    return cat === 'meteo' ? ADVICE[alert.phenomenon] || '' : CATEGORY_ADVICE[cat] || '';
+  }
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
@@ -157,7 +183,8 @@
   }
 
   window.MAlert = {
-    PHENOMENA, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
+    PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
+    categoryOf, alertKind, adviceFor,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,
