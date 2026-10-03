@@ -151,12 +151,18 @@
 
       setTiles(enabled) {
         if (enabled && !tiles) {
-          tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 19,
-            attribution: '© OpenStreetMap © CARTO',
-          }).addTo(map);
-          tiles.bringToBack();
+          // Fond sombre d'Esri (sans clé API ; CARTO exige une clé depuis août 2026). Les noms de
+          // villes sont dans une couche à part, posée au-dessus des départements colorés.
+          if (!map.getPane('labels')) {
+            const pane = map.createPane('labels');
+            pane.style.zIndex = 450;
+            pane.style.pointerEvents = 'none';
+          }
+          const esri = (name, opts) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${name}/MapServer/tile/{z}/{y}/{x}`, { maxNativeZoom: 16, maxZoom: 19, ...opts });
+          tiles = L.layerGroup([
+            esri('World_Dark_Gray_Base', { attribution: 'Fond de carte © Esri, HERE, Garmin, © OpenStreetMap' }),
+            esri('World_Dark_Gray_Reference', { pane: 'labels' }),
+          ]).addTo(map);
         } else if (!enabled && tiles) {
           map.removeLayer(tiles);
           tiles = null;

@@ -108,4 +108,4 @@ web/                    Interface (aussi utilisable comme site web)
 
 - Vigilance : © Météo-France (API « Données Publiques Vigilance »).
 - Contours des départements : IGN Admin Express via [france-geojson](https://github.com/gregoiredavid/france-geojson) (Licence Ouverte).
-- Carte : [Leaflet](https://leafletjs.com) (BSD-2). Fond de carte détaillé : © OpenStreetMap, © CARTO.
+- Carte : [Leaflet](https://leafletjs.com) (BSD-2). Fond de carte détaillé : © Esri, HERE, Garmin, © OpenStreetMap (ArcGIS World Dark Gray Canvas).
