@@ -15,6 +15,9 @@ M-Alert est dans le dépôt pacman [malik05](https://github.com/malik05051/malik
 # pacman -Syu m-alert
 ```
 
+### Téléphone et navigateur
+Version web : **https://malik05051.github.io/M-alert/** — sur téléphone, « Ajouter à l'écran d'accueil » puis activez les notifications push dans les réglages pour être prévenu application fermée.
+
 ### Autres distributions Linux
 - **`M-Alert-….AppImage`** : toutes distributions, se met à jour automatiquement. `chmod +x M-Alert-*.AppImage` puis lancez-le.
 - **`M-Alert-…-amd64.deb`** : Debian, Ubuntu, Linux Mint… `sudo apt install ./M-Alert-*-amd64.deb`
