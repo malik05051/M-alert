@@ -42,10 +42,11 @@
         style.color = '#ffffff';
         style.weight = 2.5;
       }
+      // Alerte M-Alert en cours : tout le département prend la couleur du niveau d'alerte.
       const alertLevel = state.alertLevels[code];
       if (alertLevel) {
-        style.color = LEVELS[alertLevel].color;
-        style.weight = 3.5;
+        style.fillColor = LEVELS[alertLevel].color;
+        style.fillOpacity = tiles ? 0.75 : 0.95;
       }
       if (state.selected.has(code)) {
         style.color = '#22d3ee';
@@ -85,7 +86,7 @@
           offset: [0, -8],
         });
         layer.on('mouseover', () => {
-          layer.setStyle({ weight: Math.max(2, styleFor(code).weight), color: state.alertLevels[code] ? styleFor(code).color : '#ffffff' });
+          layer.setStyle({ weight: Math.max(2, styleFor(code).weight), color: '#ffffff' });
         });
         layer.on('mouseout', () => refreshLayer(code));
         layer.on('click', (e) => {
@@ -93,8 +94,6 @@
         });
       },
     }).addTo(map);
-
-    const pins = L.layerGroup().addTo(map);
 
     // Leaflet recalcule mal la taille si le conteneur change (panneaux, mobile).
     const ro = new ResizeObserver(() => map.invalidateSize());
@@ -110,35 +109,13 @@
 
       setAlerts(alerts) {
         const levels = {};
-        const pinLevels = {};
         for (const a of alerts || []) {
-          const national = a.departments.includes('ALL');
-          const codes = national ? Object.keys(layers) : a.departments;
-          for (const c of codes) {
-            levels[c] = Math.max(levels[c] || 0, a.level);
-            if (!national) pinLevels[c] = Math.max(pinLevels[c] || 0, a.level);
-          }
+          const codes = a.departments.includes('ALL') ? Object.keys(layers) : a.departments;
+          for (const c of codes) levels[c] = Math.max(levels[c] || 0, a.level);
         }
         state.alertLevels = levels;
         refreshAll();
 
-        // Marqueurs pulsants au centre des départements concernés (visibles même pour Paris).
-        pins.clearLayers();
-        for (const [code, level] of Object.entries(pinLevels)) {
-          if (!layers[code]) continue;
-          const icon = L.divIcon({
-            className: `alert-pin lvl-${level}`,
-            html: '<span></span>',
-            iconSize: [14, 14],
-          });
-          const marker = L.marker(layers[code].getBounds().getCenter(), { icon, keyboard: false, interactive: true });
-          marker.on('add', () => marker.getElement().style.setProperty('--pin', LEVELS[level].color));
-          marker.on('click', (e) => options.onDepartmentClick && options.onDepartmentClick(code, layers[code].feature.properties.nom, e));
-          marker.bindTooltip(() => (options.tooltip ? options.tooltip(code, layers[code].feature.properties.nom) : code), {
-            direction: 'top', className: 'dep-tooltip', offset: [0, -10],
-          });
-          pins.addLayer(marker);
-        }
       },
 
       setHighlighted(codes) {

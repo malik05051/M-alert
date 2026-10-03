@@ -12,23 +12,8 @@
 .leaflet-control-attribution { background: rgba(11, 18, 32, .7) !important; color: var(--muted) !important; }
 .leaflet-control-attribution a { color: var(--muted) !important; }
 .leaflet-interactive:focus { outline: none; }
-path.dep-alert { animation: dep-pulse 1.2s ease-in-out infinite; }
-path.dep-alert-4 { animation-duration: .7s; }
-path.dep-alert-5 { animation-duration: .45s; }
-@keyframes dep-pulse { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: .15; } }
-
-
-/* Marqueurs pulsants au centre des départements en alerte */
-.alert-pin { position: relative; }
-.alert-pin span {
-  position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
-  border-radius: 50%; background: var(--pin); border: 2px solid #0b1220; box-shadow: 0 0 10px var(--pin);
-}
-.alert-pin::before, .alert-pin::after {
-  content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
-  border-radius: 50%; border: 3px solid var(--pin); animation: pin-wave 1.8s ease-out infinite; pointer-events: none;
-}
-.alert-pin::after { animation-delay: .9s; }
-.alert-pin.lvl-4::before, .alert-pin.lvl-4::after { animation-duration: 1.1s; }
-.alert-pin.lvl-5::before, .alert-pin.lvl-5::after { animation-duration: .7s; }
-@keyframes pin-wave { from { transform: scale(1); opacity: .9; } to { transform: scale(4.5); opacity: 0; } }
+/* Département en alerte : rempli de la couleur du niveau, qui clignote (plus vite en rouge et majeure). */
+path.dep-alert { animation: dep-pulse 1.4s ease-in-out infinite; }
+path.dep-alert-4 { animation-duration: .9s; }
+path.dep-alert-5 { animation-duration: .55s; }
+@keyframes dep-pulse { 0%, 100% { fill-opacity: .95; } 50% { fill-opacity: .45; } }
