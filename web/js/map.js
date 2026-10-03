@@ -18,6 +18,19 @@
     map.attributionControl.addAttribution('Contours © IGN · Vigilance © Météo-France');
     map.fitBounds(FRANCE_BOUNDS);
 
+    // Limite de dézoom : la France entière remplit la carte, on ne peut pas dézoomer au-delà
+    // (recalculée quand la carte change de taille). On ne peut pas non plus trop s'en éloigner.
+    map.setMaxBounds(L.latLngBounds(FRANCE_BOUNDS).pad(0.25));
+    function updateMinZoom() {
+      const size = map.getSize();
+      if (!size.x || !size.y) return; // carte encore cachée
+      // getBoundsZoom est borné par le zoom minimum actuel : on le relâche avant le calcul,
+      // sinon il ne pourrait jamais redescendre quand la fenêtre rétrécit.
+      map.options.minZoom = 0;
+      map.setMinZoom(map.getBoundsZoom(FRANCE_BOUNDS));
+    }
+    updateMinZoom();
+
     let tiles = null;
     const state = {
       vigilance: {},      // code -> { level, phenomena }
@@ -28,8 +41,8 @@
     };
     const layers = {};    // code -> layer
 
-    // Contour blanc des départements en alerte : plus fin en majeure, dont le rose se voit déjà de loin.
-    const edgeWeight = (level) => (level >= 5 ? 2 : 3.5);
+    // Contour blanc des départements en alerte : à peine plus épais que les frontières normales.
+    const edgeWeight = () => 2;
 
     function styleFor(code) {
       const vig = state.vigilance[code];
@@ -146,7 +159,10 @@
     }).addTo(map);
 
     // Leaflet recalcule mal la taille si le conteneur change (panneaux, mobile).
-    const ro = new ResizeObserver(() => map.invalidateSize());
+    const ro = new ResizeObserver(() => {
+      map.invalidateSize();
+      updateMinZoom();
+    });
     ro.observe(document.getElementById(elementId));
 
     return {
@@ -220,6 +236,7 @@
 
       invalidate() {
         map.invalidateSize();
+        updateMinZoom();
       },
 
       geo,
