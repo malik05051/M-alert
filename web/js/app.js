@@ -19,7 +19,6 @@
     repeat: true,
     vigNotify: true,
     front: true,
-    autostart: false,
     push: false,
     tiles: false,
     serverUrl: (window.MALERT_CONFIG && window.MALERT_CONFIG.serverUrl) || 'http://localhost:8080',
@@ -178,13 +177,21 @@
   function renderVigInfo() {
     const p = periodData();
     const info = $('vigInfo');
-    $('demoBadge').classList.toggle('hidden', !(vigilance && vigilance.source === 'demo'));
+    const badge = M.vigilanceBadge(vigilance);
+    $('vigBadge').classList.toggle('hidden', !badge);
+    if (badge) {
+      $('vigBadge').className = badge.cls;
+      $('vigBadge').textContent = badge.text;
+      $('vigBadge').title = badge.title;
+    }
     if (!vigilance || !p) {
       info.textContent = vigilance && vigilance.error ? `Vigilance indisponible : ${vigilance.error}` : 'Vigilance en attente du serveur…';
       $('mapCaption').textContent = 'Vigilance : en attente…';
       return;
     }
-    info.textContent = `Mise à jour : ${M.formatDateTime(vigilance.updatedAt)}${vigilance.error ? ' · ⚠ ' + vigilance.error : ''}`;
+    info.textContent = vigilance.source === 'manual'
+      ? `Vigilance saisie manuellement par M-Alert${vigilance.reason === 'api-down' ? ' (API Météo-France indisponible)' : ''} · ${M.formatDateTime(vigilance.updatedAt)}`
+      : `Mise à jour : ${M.formatDateTime(vigilance.updatedAt)}${vigilance.error ? ' · ⚠ ' + vigilance.error : ''}`;
     $('mapCaption').textContent = `Vigilance ${day ? 'de demain' : 'd\'aujourd\'hui'} · ${M.formatDateTime(p.begin)} → ${M.formatDateTime(p.end)}`;
   }
 
@@ -614,7 +621,11 @@
     $('setServer').value = settings.serverUrl;
     document.querySelectorAll('.native-only').forEach((el) => el.classList.toggle('hidden', !native));
     document.querySelectorAll('.push-only').forEach((el) => el.classList.toggle('hidden', !pushSupported));
-    if (native) $('setAutostart').checked = await native.getAutostart();
+    if (native) {
+      const ns = await native.getSettings();
+      $('setBackground').checked = ns.background;
+      $('setAutostart').checked = ns.autostart;
+    }
     updateNotifState();
     dlg.dataset.welcome = welcome ? '1' : '';
     if (!dlg.open) dlg.showModal();
@@ -651,8 +662,7 @@
       serverUrl: M.normalizeServerUrl($('setServer').value) || DEFAULTS.serverUrl,
     };
     if (native) {
-      settings.autostart = $('setAutostart').checked;
-      native.setAutostart(settings.autostart);
+      native.setSettings({ background: $('setBackground').checked, autostart: $('setAutostart').checked });
     }
     saveSettings();
     const wasWelcome = Boolean(dlg.dataset.welcome);
@@ -701,7 +711,19 @@
   if (native) {
     native.onOpenSettings(() => openSettings());
     native.onTestAlert(() => $('btnTest').click());
+    // Retour de veille : on se reconnecte tout de suite pour ne rater aucune alerte.
+    native.onResume(() => {
+      retry = 0;
+      connect();
+    });
   }
+
+  window.addEventListener('online', () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      retry = 0;
+      connect();
+    }
+  });
 
   // ---------- Démarrage ----------
 

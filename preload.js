@@ -7,8 +7,9 @@ contextBridge.exposeInMainWorld('malertNative', {
   isElectron: true,
   showWindow: () => ipcRenderer.send('show-window'),
   alert: (info) => ipcRenderer.send('alert', info),
-  getAutostart: () => ipcRenderer.invoke('get-autostart'),
-  setAutostart: (enabled) => ipcRenderer.send('set-autostart', enabled),
+  getSettings: () => ipcRenderer.invoke('get-native-settings'),
+  setSettings: (values) => ipcRenderer.send('set-native-settings', values),
   onOpenSettings: (cb) => ipcRenderer.on('open-settings', () => cb()),
   onTestAlert: (cb) => ipcRenderer.on('test-alert', () => cb()),
+  onResume: (cb) => ipcRenderer.on('resume', () => cb()),
 });

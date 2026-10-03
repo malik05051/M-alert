@@ -19,7 +19,7 @@
     <div class="status" id="status" data-state="connecting">
       <span class="dot"></span><span id="statusText">Connexion…</span>
     </div>
-    <span class="badge-demo hidden" id="demoBadge" title="Le serveur n'a pas de clé API Météo-France : la carte affiche des données fictives">Vigilance : démo</span>
+    <span class="badge-demo hidden" id="vigBadge"></span>
     <div class="spacer"></div>
     <div class="seg" id="dayToggle" role="tablist" aria-label="Échéance de la vigilance">
       <button type="button" data-day="0" class="active">Aujourd'hui</button>
@@ -142,7 +142,8 @@
       <fieldset>
         <legend>Application</legend>
         <label class="check"><input type="checkbox" id="setTiles"> Fond de carte détaillé (villes, routes)</label>
-        <label class="check native-only hidden"><input type="checkbox" id="setAutostart"> Lancer M-Alert au démarrage de l'ordinateur</label>
+        <label class="check native-only hidden"><input type="checkbox" id="setBackground"> Continuer en arrière-plan quand la fenêtre est fermée (icône dans la zone de notification)</label>
+        <label class="check native-only hidden"><input type="checkbox" id="setAutostart"> Lancer M-Alert au démarrage de l'ordinateur (en arrière-plan)</label>
         <label class="field">Adresse du serveur M-Alert
           <input type="url" id="setServer" placeholder="https://mon-serveur-malert.onrender.com" autocomplete="off">
         </label>

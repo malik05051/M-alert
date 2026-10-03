@@ -125,8 +125,29 @@
     return url;
   }
 
+  /** Badge d'état de la vigilance : { text, cls, title } ou null si tout va bien. */
+  function vigilanceBadge(v) {
+    if (!v) return null;
+    if (v.source === 'manual') {
+      return {
+        text: 'Vigilance manuelle',
+        cls: 'badge-manual',
+        title: v.reason === 'api-down'
+          ? 'L\'API Météo-France est en panne : la vigilance est saisie manuellement par M-Alert.'
+          : 'La vigilance est saisie manuellement par M-Alert.',
+      };
+    }
+    if (v.source === 'demo') {
+      return { text: 'Vigilance : démo', cls: 'badge-demo', title: 'Aucune clé API Météo-France sur le serveur : données fictives.' };
+    }
+    if (v.error) {
+      return { text: '⚠ Vigilance non à jour', cls: 'badge-demo', title: `${v.error} — affichage des dernières données reçues.` };
+    }
+    return null;
+  }
+
   window.MAlert = {
-    PHENOMENA, VIGILANCE, LEVELS, ADVICE,
+    PHENOMENA, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,

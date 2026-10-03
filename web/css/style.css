@@ -50,6 +50,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
 .status[data-state="connecting"] .dot { animation: blink 1s infinite; }
 .status[data-state="offline"] .dot { background: var(--err); }
 .badge-demo { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #3b2f0b; color: var(--warn); border: 1px solid #5b4710; }
+.badge-manual { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #2e1065; color: #ddd6fe; border: 1px solid #5b21b6; }
 .clock { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--muted); min-width: 64px; text-align: right; }
 .seg { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 2px; }
 .seg button { background: none; border: 0; color: var(--muted); padding: 5px 12px; border-radius: 7px; cursor: pointer; font: inherit; font-size: 13px; }

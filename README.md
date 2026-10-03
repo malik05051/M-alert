@@ -17,27 +17,42 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Marqueurs pulsants** sur les départements en alerte, pour bien voir même les petits départements (Paris, petite couronne…).
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
+- **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
+- Si l'API Météo-France est en panne, la carte affiche la **vigilance saisie manuellement** depuis M-Alert-sender (badge « Vigilance manuelle »).
 - **Réglages** : département principal, autres départements suivis, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
 
 ## Utilisation
 
-### Application de bureau (Windows, macOS, Linux)
+### Application de bureau (Windows et Linux)
 
-M-Alert reste dans la zone de notification quand on ferme la fenêtre (comme JQuake) et passe au premier plan lors d'une alerte.
+| Système | Fichier |
+| --- | --- |
+| Windows 10/11 | `M-Alert-Setup-x.y.z.exe` (installateur) ou `M-Alert-Portable-x.y.z.exe` (sans installation) |
+| Linux | `M-Alert-x.y.z.AppImage` (toutes distributions) ou `M-Alert-x.y.z-amd64.deb` (Debian, Ubuntu, Mint…) |
+
+Ces fichiers sont construits automatiquement par GitHub à chaque modification : onglet **Actions** > **Applications de bureau** > dernier passage > *Artifacts*. En poussant un tag `v1.0.0`, ils sont joints à une *Release*.
+
+Pour la lancer depuis le code source :
 
 ```bash
 npm install
-npm start          # lancer l'application
-npm run dist       # créer l'installateur pour votre système (dossier dist/)
+npm start            # lancer l'application
+npm run dist:win     # installateur Windows (dans dist/)
+npm run dist:linux   # AppImage + .deb (dans dist/)
 ```
 
-Les installateurs peuvent aussi être construits par GitHub : onglet **Actions** > **Applications de bureau** > *Run workflow*, ou en poussant un tag `v1.0.0` (les fichiers sont joints à une *Release*).
+**Arrière-plan** : quand on ferme la fenêtre, M-Alert continue de tourner dans la zone de notification (icône près de l'horloge) et reste à l'écoute des alertes. Clic droit sur l'icône : *Ouvrir*, *Réglages*, *Tester une alerte*, *Quitter*. Relancer M-Alert rouvre aussi la fenêtre. Dans les réglages :
+
+- **Continuer en arrière-plan quand la fenêtre est fermée** (activé par défaut) ;
+- **Lancer M-Alert au démarrage de l'ordinateur** : démarre caché dans la zone de notification (registre Windows, ou fichier `~/.config/autostart/fr.malert.app.desktop` sous Linux).
+
+Sous Linux, l'icône de la zone de notification nécessite la prise en charge d'AppIndicator (présente par défaut sur Ubuntu, KDE, Cinnamon, XFCE ; sur GNOME « pur », installez l'extension *AppIndicator and KStatusNotifierItem Support*). Pour l'AppImage : `chmod +x M-Alert-*.AppImage` puis double-clic.
 
 ### Version web (téléphone, navigateur)
 
 Le dossier `web/` est un site statique. Le workflow **Version web (GitHub Pages)** le publie automatiquement à chaque modification sur `main` (à activer une fois : *Settings > Pages > Source : GitHub Actions*).
 
-Sur téléphone, ouvrez la page puis « Ajouter à l'écran d'accueil ». Cochez **Recevoir les alertes même quand l'application est fermée (push)** dans les réglages pour être notifié application fermée. Sur iPhone, les notifications push nécessitent iOS 16.4 ou plus et que M-Alert soit ajouté à l'écran d'accueil.
+Sur téléphone, l'application ne tourne pas en continu en arrière-plan : ce sont les **notifications push** qui préviennent quand elle est fermée. Ouvrez la page puis « Ajouter à l'écran d'accueil ». Cochez **Recevoir les alertes même quand l'application est fermée (push)** dans les réglages pour être notifié application fermée. Sur iPhone, les notifications push nécessitent iOS 16.4 ou plus et que M-Alert soit ajouté à l'écran d'accueil.
 
 Pour tester en local : `npm run web` puis ouvrez http://localhost:5173.
 
@@ -71,6 +86,7 @@ Sans fichier, une sirène synthétique est jouée. Réglages > **Tester une aler
 
 ```
 main.js, preload.js     Application de bureau (Electron)
+background.js           Arrière-plan : zone de notification, lancement au démarrage
 web/                    Interface (aussi utilisable comme site web)
   index.html, config.js
   js/app.js             Logique : connexion temps réel, alertes, réglages

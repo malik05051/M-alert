@@ -1,26 +1,30 @@
 'use strict';
 
-/* M-Alert — application de bureau (Electron).
- * La fenêtre charge l'interface du dossier web/. Fermer la fenêtre la réduit dans la zone de
- * notification : M-Alert continue d'écouter les alertes en arrière-plan, comme JQuake.
+/* M-Alert — application de bureau (Electron) pour Windows et Linux.
+ * La fenêtre charge l'interface du dossier web/. Quand on la ferme, M-Alert continue en
+ * arrière-plan dans la zone de notification et reste à l'écoute des alertes, comme JQuake.
  */
 
 const path = require('path');
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, powerMonitor } = require('electron');
+const bg = require('./background');
 
+const APP_ID = 'fr.malert.app';
 const ICON = path.join(__dirname, 'web', 'icons', 'icon-512.png');
 let win = null;
 let tray = null;
 let quitting = false;
+let settings = null;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
+  // Relancer M-Alert alors qu'il tourne en arrière-plan rouvre simplement la fenêtre.
   app.on('second-instance', () => showWindow());
 }
 
-// Nécessaire pour les notifications Windows.
-if (process.platform === 'win32') app.setAppUserModelId('fr.malert.app');
+// Nécessaire pour les notifications Windows (doit correspondre à l'appId de l'installateur).
+if (process.platform === 'win32') app.setAppUserModelId(app.isPackaged ? APP_ID : process.execPath);
 
 function showWindow() {
   if (!win) return;
@@ -29,8 +33,12 @@ function showWindow() {
   win.focus();
 }
 
+function quit() {
+  quitting = true;
+  app.quit();
+}
+
 function createWindow() {
-  const startHidden = process.argv.includes('--hidden');
   win = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -39,44 +47,30 @@ function createWindow() {
     backgroundColor: '#0b1220',
     title: 'M-Alert',
     icon: ICON,
-    show: !startHidden,
+    show: !bg.startHidden(),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // Les alertes doivent pouvoir sonner sans clic préalable.
+      // Les alertes doivent pouvoir sonner sans clic préalable, même fenêtre cachée.
       autoplayPolicy: 'no-user-gesture-required',
       backgroundThrottling: false,
     },
   });
   win.loadFile(path.join(__dirname, 'web', 'index.html'));
 
-  // Liens externes dans le navigateur par défaut.
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
 
   win.on('close', (e) => {
-    if (!quitting) {
-      e.preventDefault();
-      win.hide();
-    }
+    if (quitting || !settings.background) return;
+    e.preventDefault();
+    win.hide();
+    bg.notifyHiddenOnce(settings, 'M-Alert reste actif', ICON);
   });
-}
-
-function createTray() {
-  tray = new Tray(nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 }));
-  tray.setToolTip('M-Alert — à l\'écoute des alertes');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Ouvrir M-Alert', click: showWindow },
-    { label: 'Réglages', click: () => { showWindow(); win.webContents.send('open-settings'); } },
-    { label: 'Tester une alerte', click: () => { showWindow(); win.webContents.send('test-alert'); } },
-    { type: 'separator' },
-    { label: 'Quitter', click: () => { quitting = true; app.quit(); } },
-  ]));
-  tray.on('click', showWindow);
 }
 
 ipcMain.on('show-window', showWindow);
@@ -93,17 +87,41 @@ ipcMain.on('alert', (_e, { level, front }) => {
   setTimeout(() => win && win.flashFrame(false), 10000);
 });
 
-ipcMain.handle('get-autostart', () => app.getLoginItemSettings().openAtLogin);
-ipcMain.on('set-autostart', (_e, enabled) => {
-  app.setLoginItemSettings({ openAtLogin: Boolean(enabled), args: ['--hidden'] });
+ipcMain.handle('get-native-settings', () => ({
+  platform: process.platform,
+  background: settings.background,
+  autostart: bg.getAutostart(APP_ID),
+}));
+
+ipcMain.on('set-native-settings', (_e, values) => {
+  if (typeof values.background === 'boolean') settings.background = values.background;
+  bg.saveSettings(settings);
+  if (typeof values.autostart === 'boolean') {
+    try {
+      bg.setAutostart(APP_ID, 'M-Alert', ICON, values.autostart);
+    } catch (err) {
+      console.error('Lancement au démarrage :', err.message);
+    }
+  }
 });
 
 app.whenReady().then(() => {
+  settings = bg.loadSettings();
   createWindow();
-  createTray();
-  app.on('activate', showWindow);
+  tray = bg.createTray(ICON, 'M-Alert — à l\'écoute des alertes', [
+    { label: 'Ouvrir M-Alert', click: showWindow },
+    { label: 'Réglages', click: () => { showWindow(); win.webContents.send('open-settings'); } },
+    { label: 'Tester une alerte', click: () => { showWindow(); win.webContents.send('test-alert'); } },
+    { type: 'separator' },
+    { label: 'Quitter M-Alert', click: quit },
+  ], showWindow);
+
+  // Après une mise en veille, la connexion est rétablie immédiatement.
+  powerMonitor.on('resume', () => win && win.webContents.send('resume'));
+  powerMonitor.on('unlock-screen', () => win && win.webContents.send('resume'));
 });
 
 app.on('before-quit', () => { quitting = true; });
-// L'application reste active dans la zone de notification quand la fenêtre est fermée.
-app.on('window-all-closed', () => {});
+app.on('window-all-closed', () => {
+  if (!settings || !settings.background) app.quit();
+});
