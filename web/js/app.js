@@ -14,7 +14,7 @@
     extra: [],
     all: false,
     minLevel: 1,
-    categories: Object.keys(M.CATEGORIES), // catégories d'alertes reçues
+    categoriesOff: [], // catégories d'alertes désactivées (les nouvelles restent actives)
     sound: true,
     volume: 0.8,
     repeat: true,
@@ -262,7 +262,7 @@
   // ---------- Alerte plein écran, son et notification ----------
 
   function wantsCategory(alert) {
-    return settings.categories.includes(M.categoryOf(alert));
+    return !settings.categoriesOff.includes(M.categoryOf(alert));
   }
 
   function matchesMe(alert) {
@@ -556,7 +556,8 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel, categories: settings.categories,
+          subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel,
+          excludedCategories: settings.categoriesOff,
         }),
       });
       if (!res.ok) throw new Error(`serveur HTTP ${res.status}`);
@@ -631,7 +632,7 @@
     $('setExtra').querySelectorAll('label').forEach((l) => l.classList.remove('hidden'));
     $('setAll').checked = settings.all;
     $('setMinLevel').value = String(settings.minLevel);
-    $('setCategories').querySelectorAll('input').forEach((i) => { i.checked = settings.categories.includes(i.value); });
+    $('setCategories').querySelectorAll('input').forEach((i) => { i.checked = !settings.categoriesOff.includes(i.value); });
     $('setSound').checked = settings.sound;
     $('setVolume').value = String(settings.volume);
     $('setRepeat').checked = settings.repeat;
@@ -673,7 +674,7 @@
       extra: [...$('setExtra').querySelectorAll('input:checked')].map((i) => i.value).filter((c) => c !== dep),
       all: $('setAll').checked,
       minLevel: Number($('setMinLevel').value),
-      categories: [...$('setCategories').querySelectorAll('input:checked')].map((i) => i.value),
+      categoriesOff: [...$('setCategories').querySelectorAll('input:not(:checked)')].map((i) => i.value),
       sound: $('setSound').checked,
       volume: Number($('setVolume').value),
       repeat: $('setRepeat').checked,

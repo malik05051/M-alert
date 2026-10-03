@@ -18,10 +18,21 @@
   // Catégories d'alertes M-Alert. Le phénomène ne concerne que la catégorie « meteo ».
   const CATEGORIES = {
     meteo: { name: 'Météo', icon: '🌦️' },
+    seisme: { name: 'Tremblement de terre', icon: '🏚️' },
+    tsunami: { name: 'Tsunami', icon: '🌊' },
+    pollution: { name: 'Pollution', icon: '🏭' },
+    accident: { name: 'Accident', icon: '🚨' },
+    greve: { name: 'Grève', icon: '📢' },
     blocus: { name: 'Blocus / manifestation', icon: '🚧' },
   };
 
+  // Consignes types inspirées des recommandations officielles (préfectures, ARS, ministère des Affaires étrangères).
   const CATEGORY_ADVICE = {
+    seisme: 'Pendant les secousses, abritez-vous sous un meuble solide, loin des fenêtres, et protégez votre tête ; à l\'extérieur, éloignez-vous des bâtiments et des lignes électriques. Ensuite, coupez le gaz et l\'électricité, évacuez sans prendre l\'ascenseur et attendez-vous à des répliques.',
+    tsunami: 'Réagissez immédiatement sans attendre la vague : rejoignez à pied un point haut ou l\'intérieur des terres. Ne restez ni sur la plage, ni dans les ports, ni sur les digues. N\'utilisez pas votre voiture et ne revenez pas avant la fin de l\'alerte : plusieurs vagues peuvent se succéder.',
+    pollution: 'Réduisez ou reportez les activités physiques et sportives intenses. Les personnes sensibles (enfants, personnes âgées, malades) doivent les limiter, y compris en intérieur, et éviter les axes à forte circulation. Respectez les mesures de restriction de circulation.',
+    accident: 'Évitez le secteur et respectez le périmètre de sécurité. Laissez passer les secours et ne vous arrêtez pas pour regarder. Suivez les consignes des autorités.',
+    greve: 'Renseignez-vous auprès des transporteurs et des services concernés. Anticipez vos déplacements et prévoyez des solutions de remplacement.',
     blocus: 'Évitez le secteur concerné et prévoyez un itinéraire de délestage. Attendez-vous à des perturbations de circulation et des transports. Suivez les consignes des forces de l\'ordre et des autorités.',
   };
 
