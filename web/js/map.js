@@ -28,6 +28,9 @@
     };
     const layers = {};    // code -> layer
 
+    // Contour blanc des départements en alerte : plus fin en majeure, dont le rose se voit déjà de loin.
+    const edgeWeight = (level) => (level >= 5 ? 2 : 3.5);
+
     function styleFor(code) {
       const vig = state.vigilance[code];
       const level = vig ? vig.level : 0;
@@ -52,7 +55,7 @@
         style.fillColor = LEVELS[alertLevel].color;
         style.fillOpacity = tiles ? 0.75 : 0.95;
         style.color = '#ffffff';
-        style.weight = 3.5;
+        style.weight = edgeWeight(alertLevel);
         style.dashArray = null;
       }
       if (state.selected.has(code)) {
@@ -109,7 +112,7 @@
           pulseGroup.addLayer(L.polygon(latlngs, { renderer: pulseRenderer, interactive: false, stroke: false, fillColor: '#0b1220', fillOpacity: 1 }));
         }
         if (!state.selected.has(c)) {
-          edgeGroup.addLayer(L.polygon(latlngs, { renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', weight: 3.5 }));
+          edgeGroup.addLayer(L.polygon(latlngs, { renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', weight: edgeWeight(state.alertLevels[c]) }));
         }
       }
       pulsePane.dataset.level = max ? String(max) : '';
