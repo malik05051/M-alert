@@ -14,7 +14,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Alerte plein écran** dans le style de JQuake / GlobalQuake : cadre clignotant à la couleur du niveau, titre, départements concernés, description et consignes.
 - **Son d'alerte** selon le niveau (information ; jaune et orange ; rouge ; majeure), avec un son dédié aux tsunamis et vagues-submersion. Pour l'orange, le rouge et la majeure, le son peut être répété jusqu'à « J'ai compris ».
 - **Notification système** avec la description de l'alerte.
-- **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité que la vigilance et un contour blanc fin.
+- **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité et les mêmes frontières noires que la vigilance.
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.

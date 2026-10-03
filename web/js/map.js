@@ -40,11 +40,6 @@
     };
     const layers = {};    // code -> layer
 
-    // Départements en alerte : même luminosité que la vigilance (même opacité de remplissage) et
-    // contour blanc fin, adouci pour ne pas éblouir à côté des frontières sombres.
-    const EDGE_WEIGHT = 2;
-    const EDGE_OPACITY = 0.7;
-
     function styleFor(code) {
       const vig = state.vigilance[code];
       const level = vig ? vig.level : 0;
@@ -62,14 +57,13 @@
         style.weight = 2;
         style.dashArray = '5 4';
       }
-      // Alerte M-Alert en cours : tout le département prend la couleur du niveau d'alerte, avec un
-      // contour blanc épais (largeur fixe à l'écran : les petits départements restent visibles).
+      // Alerte M-Alert en cours : tout le département prend la couleur du niveau d'alerte, avec la
+      // même luminosité et la même frontière noire que les autres départements.
       const alertLevel = state.alertLevels[code];
       if (alertLevel) {
         style.fillColor = LEVELS[alertLevel].color;
-        style.color = '#ffffff';
-        style.opacity = EDGE_OPACITY;
-        style.weight = EDGE_WEIGHT;
+        style.color = '#0b1220';
+        style.weight = 1.1;
         style.dashArray = null;
       }
       if (state.selected.has(code)) {
@@ -94,31 +88,8 @@
       if (state.alertLevels[code] || state.selected.has(code) || state.highlighted.has(code)) layer.bringToFront();
     }
 
-    // Contour blanc des départements en alerte, tracé dans un panneau au-dessus des autres
-    // départements pour rester entier (non recouvert par les voisins).
-    const edgePane = map.createPane('alertEdge');
-    edgePane.style.zIndex = 420;
-    edgePane.style.pointerEvents = 'none';
-    const edgeRenderer = L.svg({ pane: 'alertEdge' });
-    const edgeGroup = L.layerGroup().addTo(map);
-    let edgeKey = '';
-
-    function renderEdges() {
-      const codes = Object.keys(state.alertLevels).filter((c) => layers[c] && !state.selected.has(c)).sort();
-      const key = codes.join(',');
-      if (key === edgeKey) return;
-      edgeKey = key;
-      edgeGroup.clearLayers();
-      for (const c of codes) {
-        edgeGroup.addLayer(L.polygon(layers[c].getLatLngs(), {
-          renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', opacity: EDGE_OPACITY, weight: EDGE_WEIGHT,
-        }));
-      }
-    }
-
     function refreshAll() {
       Object.keys(layers).forEach(refreshLayer);
-      renderEdges();
     }
 
     const geo = L.geoJSON(window.MALERT_DEPARTMENTS, {
