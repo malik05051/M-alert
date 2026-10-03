@@ -86,6 +86,12 @@
     </div>
   </div>
 
+  <div id="updateBar" class="update-bar hidden" role="status">
+    <span id="updateBarText"></span>
+    <button type="button" class="btn small primary" id="updateBarAction"></button>
+    <button type="button" class="btn small ghost" id="updateBarLater">Plus tard</button>
+  </div>
+
   <div id="soundHint" class="sound-hint hidden" role="button" tabindex="0">🔇 Touchez l'écran pour autoriser le son des alertes</div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
 
@@ -149,6 +155,14 @@
         <label class="check"><input type="checkbox" id="setTiles"> Fond de carte détaillé (villes, routes)</label>
         <label class="check native-only hidden"><input type="checkbox" id="setBackground"> Continuer en arrière-plan quand la fenêtre est fermée (icône dans la zone de notification)</label>
         <label class="check native-only hidden"><input type="checkbox" id="setAutostart"> Lancer M-Alert au démarrage de l'ordinateur (en arrière-plan)</label>
+        <div class="update-box native-only hidden">
+          <div class="row">
+            <span><b>Mises à jour</b> <span class="muted small" id="updVersion"></span></span>
+            <button type="button" class="btn small" id="btnUpdCheck">Rechercher maintenant</button>
+          </div>
+          <p class="small muted" id="updState"></p>
+          <label class="check" id="updAutoRow"><input type="checkbox" id="setAutoUpdate"> Rechercher et installer les mises à jour automatiquement</label>
+        </div>
         <label class="field">Adresse du serveur M-Alert
           <input type="url" id="setServer" placeholder="https://mon-serveur-malert.onrender.com" autocomplete="off">
         </label>

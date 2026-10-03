@@ -42,6 +42,8 @@ npm run dist:win     # installateur Windows (dans dist/)
 npm run dist:linux   # AppImage + .deb (dans dist/)
 ```
 
+**Mises à jour** : l'installateur Windows et l'AppImage se mettent à jour tout seuls. M-Alert vérifie les nouvelles versions au démarrage puis toutes les 6 heures, les télécharge en arrière-plan et les installe au prochain redémarrage (un bandeau propose « Redémarrer et installer »). La version portable et le `.deb` préviennent simplement qu'une nouvelle version est disponible. Sous Arch, c'est `pacman -Syu`. Réglages > Application > *Mises à jour* : vérification manuelle et désactivation.
+
 **Arrière-plan** : quand on ferme la fenêtre, M-Alert continue de tourner dans la zone de notification (icône près de l'horloge) et reste à l'écoute des alertes. Clic droit sur l'icône : *Ouvrir*, *Réglages*, *Tester une alerte*, *Quitter*. Relancer M-Alert rouvre aussi la fenêtre. Dans les réglages :
 
 - **Continuer en arrière-plan quand la fenêtre est fermée** (activé par défaut) ;
@@ -89,6 +91,7 @@ Sans fichier, une sirène synthétique est jouée. Réglages > **Tester une aler
 ```
 main.js, preload.js     Application de bureau (Electron)
 background.js           Arrière-plan : zone de notification, lancement au démarrage
+updater.js              Mises à jour (electron-updater, Releases GitHub)
 web/                    Interface (aussi utilisable comme site web)
   index.html, config.js
   js/app.js             Logique : connexion temps réel, alertes, réglages

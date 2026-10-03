@@ -8,6 +8,7 @@
 const path = require('path');
 const { app, BrowserWindow, ipcMain, shell, powerMonitor } = require('electron');
 const bg = require('./background');
+const { Updater } = require('./updater');
 
 const APP_ID = 'fr.malert.app';
 const ICON = path.join(__dirname, 'web', 'icons', 'icon-512.png');
@@ -15,6 +16,7 @@ let win = null;
 let tray = null;
 let quitting = false;
 let settings = null;
+let updater = null;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -91,10 +93,20 @@ ipcMain.handle('get-native-settings', () => ({
   platform: process.platform,
   background: settings.background,
   autostart: bg.getAutostart(APP_ID),
+  autoUpdate: settings.autoUpdate,
 }));
+
+// Mises à jour
+ipcMain.handle('update-get', () => updater.status);
+ipcMain.on('update-check', () => updater.check());
+ipcMain.on('update-install', () => updater.install());
 
 ipcMain.on('set-native-settings', (_e, values) => {
   if (typeof values.background === 'boolean') settings.background = values.background;
+  if (typeof values.autoUpdate === 'boolean') {
+    settings.autoUpdate = values.autoUpdate;
+    updater.setEnabled(values.autoUpdate);
+  }
   bg.saveSettings(settings);
   if (typeof values.autostart === 'boolean') {
     try {
@@ -108,10 +120,20 @@ ipcMain.on('set-native-settings', (_e, values) => {
 app.whenReady().then(() => {
   settings = bg.loadSettings();
   createWindow();
+  updater = new Updater({
+    enabled: settings.autoUpdate,
+    iconPath: ICON,
+    send: (status) => win && win.webContents.send('update-status', status),
+    isWindowVisible: () => Boolean(win && win.isVisible()),
+    // Sans cela, la fenêtre se cacherait au lieu de se fermer et l'installation n'aurait pas lieu.
+    onBeforeInstall: () => { quitting = true; },
+  });
+  updater.start();
   tray = bg.createTray(ICON, 'M-Alert — à l\'écoute des alertes', [
     { label: 'Ouvrir M-Alert', click: showWindow },
     { label: 'Réglages', click: () => { showWindow(); win.webContents.send('open-settings'); } },
     { label: 'Tester une alerte', click: () => { showWindow(); win.webContents.send('test-alert'); } },
+    { label: 'Rechercher des mises à jour', click: () => { showWindow(); win.webContents.send('open-settings'); updater.check(); } },
     { type: 'separator' },
     { label: 'Quitter M-Alert', click: quit },
   ], showWindow);

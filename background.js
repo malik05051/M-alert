@@ -21,9 +21,9 @@ function settingsFile() {
 
 function loadSettings() {
   try {
-    return { background: true, hiddenNoticeShown: false, ...JSON.parse(fs.readFileSync(settingsFile(), 'utf8')) };
+    return { background: true, autoUpdate: true, hiddenNoticeShown: false, ...JSON.parse(fs.readFileSync(settingsFile(), 'utf8')) };
   } catch (_) {
-    return { background: true, hiddenNoticeShown: false };
+    return { background: true, autoUpdate: true, hiddenNoticeShown: false };
   }
 }
 

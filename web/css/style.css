@@ -159,6 +159,15 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
 .alert-foot { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 .alert-overlay .btn.primary { background: var(--c); color: var(--ct); }
 
+/* ---------- Mises à jour ---------- */
+.update-box { display: flex; flex-direction: column; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.update-box p { margin: 0; }
+.update-bar {
+  position: fixed; left: 16px; bottom: 16px; z-index: 2450; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #0f2a33; border: 1px solid #164e5b; border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+  max-width: min(520px, calc(100vw - 32px)); font-size: 14px;
+}
+
 /* ---------- Toasts ---------- */
 .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 2500; display: flex; flex-direction: column; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
 .toast {

@@ -37,10 +37,13 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: M-Alert-${{ matrix.os }}
+          # latest*.yml et *.blockmap servent aux mises à jour automatiques (Windows, AppImage).
           path: |
             dist/*.exe
             dist/*.AppImage
             dist/*.deb
+            dist/*.blockmap
+            dist/latest*.yml
           if-no-files-found: error
 
   # Une seule Release par tag, une fois Windows et Linux construits.

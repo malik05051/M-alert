@@ -647,6 +647,8 @@
       const ns = await native.getSettings();
       $('setBackground').checked = ns.background;
       $('setAutostart').checked = ns.autostart;
+      $('setAutoUpdate').checked = ns.autoUpdate;
+      native.getUpdateStatus().then(renderUpdate);
     }
     updateNotifState();
     dlg.dataset.welcome = welcome ? '1' : '';
@@ -685,7 +687,11 @@
       serverUrl: M.normalizeServerUrl($('setServer').value) || DEFAULTS.serverUrl,
     };
     if (native) {
-      native.setSettings({ background: $('setBackground').checked, autostart: $('setAutostart').checked });
+      native.setSettings({
+        background: $('setBackground').checked,
+        autostart: $('setAutostart').checked,
+        autoUpdate: $('setAutoUpdate').checked,
+      });
     }
     saveSettings();
     const wasWelcome = Boolean(dlg.dataset.welcome);
@@ -729,11 +735,56 @@
     syncPush();
   }
 
+  // ---------- Mises à jour (application de bureau) ----------
+
+  let lastUpdate = null;
+  let dismissedUpdate = null;
+
+  function renderUpdate(s) {
+    if (!s) return;
+    lastUpdate = s;
+    $('updVersion').textContent = `version ${s.current}`;
+    const auto = s.mode === 'auto';
+    $('updAutoRow').classList.toggle('hidden', s.mode === 'pacman' || s.mode === 'dev');
+    $('btnUpdCheck').classList.toggle('hidden', s.mode === 'pacman' || s.mode === 'dev');
+    $('btnUpdCheck').disabled = s.state === 'checking' || s.state === 'downloading';
+    const text = {
+      disabled: s.mode === 'pacman'
+        ? 'Mises à jour gérées par pacman : sudo pacman -Syu'
+        : 'Mises à jour désactivées en mode développement.',
+      idle: '',
+      checking: 'Recherche d\'une nouvelle version…',
+      none: 'M-Alert est à jour.',
+      downloading: `Téléchargement de la version ${s.version || ''}… ${s.percent ? s.percent + ' %' : ''}`,
+      ready: `La version ${s.version} est prête : elle s'installera au prochain redémarrage de M-Alert.`,
+      available: `La version ${s.version} est disponible${auto ? '' : ' (à télécharger et installer)'}.`,
+      error: `Impossible de vérifier les mises à jour : ${s.error || 'erreur inconnue'}`,
+    }[s.state] || '';
+    $('updState').textContent = text;
+
+    const showBar = (s.state === 'ready' || s.state === 'available') && dismissedUpdate !== s.version;
+    $('updateBar').classList.toggle('hidden', !showBar);
+    if (showBar) {
+      $('updateBarText').textContent = s.state === 'ready'
+        ? `🔄 La mise à jour ${s.version} de M-Alert est prête.`
+        : `🔔 Une nouvelle version de M-Alert (${s.version}) est disponible.`;
+      $('updateBarAction').textContent = s.state === 'ready' ? 'Redémarrer et installer' : 'Télécharger';
+    }
+  }
+
   // ---------- Application de bureau ----------
 
   if (native) {
     native.onOpenSettings(() => openSettings());
     native.onTestAlert(() => $('btnTest').click());
+    native.onUpdateStatus(renderUpdate);
+    native.getUpdateStatus().then(renderUpdate);
+    $('btnUpdCheck').addEventListener('click', () => native.checkForUpdates());
+    $('updateBarAction').addEventListener('click', () => native.installUpdate());
+    $('updateBarLater').addEventListener('click', () => {
+      dismissedUpdate = lastUpdate && lastUpdate.version;
+      $('updateBar').classList.add('hidden');
+    });
     // Retour de veille : on se reconnecte tout de suite pour ne rater aucune alerte.
     native.onResume(() => {
       retry = 0;
