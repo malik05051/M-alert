@@ -22,7 +22,6 @@
     front: true,
     push: false,
     tiles: false,
-    blink: true,
     serverUrl: (window.MALERT_CONFIG && window.MALERT_CONFIG.serverUrl) || 'http://localhost:8080',
   };
   let settings = { ...DEFAULTS, ...M.storage.get('malert.settings', {}) };
@@ -682,7 +681,6 @@
     $('setFront').checked = settings.front;
     $('setPush').checked = settings.push;
     $('setTiles').checked = settings.tiles;
-    $('setBlink').checked = settings.blink;
     $('setServer').value = settings.serverUrl;
     document.querySelectorAll('.native-only').forEach((el) => el.classList.toggle('hidden', !native));
     document.querySelectorAll('.push-only').forEach((el) => el.classList.toggle('hidden', !pushSupported));
@@ -727,7 +725,6 @@
       front: $('setFront').checked,
       push: $('setPush').checked,
       tiles: $('setTiles').checked,
-      blink: $('setBlink').checked,
       serverUrl: M.normalizeServerUrl($('setServer').value) || DEFAULTS.serverUrl,
     };
     if (native) {
@@ -773,7 +770,6 @@
 
   function onSettingsChanged(serverChanged) {
     map.setTiles(settings.tiles);
-    map.setBlink(settings.blink);
     renderAll();
     if (serverChanged) connect();
     else if (ws && ws.readyState === WebSocket.OPEN) ws.send(subscribeMessage());
@@ -848,7 +844,6 @@
 
   fillDepartmentInputs();
   map.setTiles(settings.tiles);
-  map.setBlink(settings.blink);
   renderAll();
   connect();
   if (pushSupported && settings.push) syncPush();

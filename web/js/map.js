@@ -37,12 +37,13 @@
       alertLevels: {},    // code -> niveau d'alerte M-Alert le plus élevé
       highlighted: new Set(),
       selected: new Set(),
-      blink: true,        // clignotement des départements en alerte rouge ou majeure
     };
     const layers = {};    // code -> layer
 
-    // Contour blanc des départements en alerte : à peine plus épais que les frontières normales.
-    const edgeWeight = () => 2;
+    // Départements en alerte : même luminosité que la vigilance (même opacité de remplissage) et
+    // contour blanc fin, adouci pour ne pas éblouir à côté des frontières sombres.
+    const EDGE_WEIGHT = 2;
+    const EDGE_OPACITY = 0.7;
 
     function styleFor(code) {
       const vig = state.vigilance[code];
@@ -66,9 +67,9 @@
       const alertLevel = state.alertLevels[code];
       if (alertLevel) {
         style.fillColor = LEVELS[alertLevel].color;
-        style.fillOpacity = tiles ? 0.75 : 0.95;
         style.color = '#ffffff';
-        style.weight = edgeWeight(alertLevel);
+        style.opacity = EDGE_OPACITY;
+        style.weight = EDGE_WEIGHT;
         style.dashArray = null;
       }
       if (state.selected.has(code)) {
@@ -93,47 +94,31 @@
       if (state.alertLevels[code] || state.selected.has(code) || state.highlighted.has(code)) layer.bringToFront();
     }
 
-    // Clignotement des départements en alerte rouge ou majeure : un voile sombre posé dans son propre panneau, dont
-    // seule l'opacité est animée (par la carte graphique, sans redessiner la carte). Animer
-    // fill-opacity sur les contours obligeait à redessiner tout le SVG ~60 fois par seconde.
-    // Le contour blanc est tracé au-dessus du voile pour rester net.
-    const pulsePane = map.createPane('alertPulse');
+    // Contour blanc des départements en alerte, tracé dans un panneau au-dessus des autres
+    // départements pour rester entier (non recouvert par les voisins).
     const edgePane = map.createPane('alertEdge');
-    pulsePane.style.zIndex = 410;
     edgePane.style.zIndex = 420;
-    pulsePane.style.pointerEvents = edgePane.style.pointerEvents = 'none';
-    pulsePane.dataset.level = '';
-    const pulseRenderer = L.svg({ pane: 'alertPulse' });
+    edgePane.style.pointerEvents = 'none';
     const edgeRenderer = L.svg({ pane: 'alertEdge' });
-    const pulseGroup = L.layerGroup().addTo(map);
     const edgeGroup = L.layerGroup().addTo(map);
-    let pulseKey = '';
+    let edgeKey = '';
 
-    function renderPulse() {
-      const codes = Object.keys(state.alertLevels).filter((c) => layers[c]).sort();
-      const key = `${state.blink}|` + codes.map((c) => `${c}:${state.alertLevels[c]}:${state.selected.has(c) ? 1 : 0}`).join(',');
-      if (key === pulseKey) return;
-      pulseKey = key;
-      pulseGroup.clearLayers();
+    function renderEdges() {
+      const codes = Object.keys(state.alertLevels).filter((c) => layers[c] && !state.selected.has(c)).sort();
+      const key = codes.join(',');
+      if (key === edgeKey) return;
+      edgeKey = key;
       edgeGroup.clearLayers();
-      let max = 0;
       for (const c of codes) {
-        const latlngs = layers[c].getLatLngs();
-        // Seuls le rouge et la majeure clignotent (désactivable dans les réglages).
-        if (state.blink && state.alertLevels[c] >= 4) {
-          max = Math.max(max, state.alertLevels[c]);
-          pulseGroup.addLayer(L.polygon(latlngs, { renderer: pulseRenderer, interactive: false, stroke: false, fillColor: '#0b1220', fillOpacity: 1 }));
-        }
-        if (!state.selected.has(c)) {
-          edgeGroup.addLayer(L.polygon(latlngs, { renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', weight: edgeWeight(state.alertLevels[c]) }));
-        }
+        edgeGroup.addLayer(L.polygon(layers[c].getLatLngs(), {
+          renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', opacity: EDGE_OPACITY, weight: EDGE_WEIGHT,
+        }));
       }
-      pulsePane.dataset.level = max ? String(max) : '';
     }
 
     function refreshAll() {
       Object.keys(layers).forEach(refreshLayer);
-      renderPulse();
+      renderEdges();
     }
 
     const geo = L.geoJSON(window.MALERT_DEPARTMENTS, {
@@ -191,11 +176,6 @@
       setSelected(codes) {
         state.selected = new Set(codes || []);
         refreshAll();
-      },
-
-      setBlink(enabled) {
-        state.blink = Boolean(enabled);
-        renderPulse();
       },
 
       setTiles(enabled) {

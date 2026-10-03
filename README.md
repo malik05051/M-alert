@@ -14,14 +14,14 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Alerte plein écran** dans le style de JQuake / GlobalQuake : cadre clignotant à la couleur du niveau, titre, départements concernés, description et consignes.
 - **Son d'alerte** selon le niveau (information ; jaune et orange ; rouge ; majeure), avec un son dédié aux tsunamis et vagues-submersion. Pour l'orange, le rouge et la majeure, le son peut être répété jusqu'à « J'ai compris ».
 - **Notification système** avec la description de l'alerte.
-- **Départements en alerte** remplis de la couleur du niveau, avec un contour blanc épais ; ceux en alerte rouge ou majeure clignotent (désactivable dans les réglages), sans surcharger le processeur.
+- **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité que la vigilance et un contour blanc fin.
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
 - Une alerte **modifiée** depuis M-Alert-sender est mise à jour en direct ; elle sonne de nouveau si son niveau monte ou si votre département vient d'être ajouté.
 - La vigilance peut être **corrigée ou saisie à la main** depuis M-Alert-sender, que l'API Météo-France fonctionne ou soit en panne : badges « Vigilance corrigée » / « Vigilance manuelle » et mention « ✎ corrigé par M-Alert » sur les départements concernés.
 - **Catégories d'alertes** : 🌦️ Météo, 🏚️ Tremblement de terre, 🌊 Tsunami, 🏭 Pollution, 🚨 Accident, 📢 Grève, 🚧 Blocus / manifestation, chacune avec ses consignes. Chaque catégorie peut être désactivée dans les réglages.
-- **Réglages** : département principal, autres départements suivis, catégories d'alertes reçues, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, clignotement des départements, lancement au démarrage, adresse du serveur.
+- **Réglages** : département principal, autres départements suivis, catégories d'alertes reçues, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
 
 ## Utilisation
 
