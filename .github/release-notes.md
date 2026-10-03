@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.5
+- Nouvelle catégorie 🏭 **Accident industriel** (à la place d'Accident), avec les consignes officielles de mise à l'abri.
+- Nouveau son pour les **crues**, la **pluie-inondation**, les **tsunamis** et les **vagues-submersion**.
+
 ## Nouveautés de la 1.2.4
 - Fond de carte détaillé : seule la France est affichée, les autres pays sont masqués.
 
