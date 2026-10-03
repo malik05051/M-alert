@@ -508,12 +508,13 @@
   }
 
   // Retire les alertes expirées même sans message du serveur.
+  let tick = 0;
   setInterval(() => {
     const before = alerts.length;
     alerts = alerts.filter(M.isActive);
     if (alerts.length !== before) renderAll();
-    else renderAlerts(); // met à jour les « il y a x min »
-  }, 30000);
+    else if (++tick % 6 === 0) renderAlerts(); // met à jour les « il y a x min » toutes les 30 s
+  }, 5000); // 5 s : les alertes à durée personnalisée peuvent être très courtes
 
   // ---------- Notifications push (navigateur / téléphone) ----------
 
