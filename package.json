@@ -1,0 +1,49 @@
+{
+  "name": "m-alert",
+  "productName": "M-Alert",
+  "version": "1.0.0",
+  "description": "Réception des alertes météo M-Alert avec carte de vigilance Météo-France",
+  "author": "malik05051",
+  "homepage": "https://github.com/malik05051/M-alert",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "web": "npx --yes http-server web -p 5173 -c-1",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "fr.malert.app",
+    "productName": "M-Alert",
+    "files": [
+      "main.js",
+      "preload.js",
+      "web/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "web/icons/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "web/icons/icon-512.png",
+      "category": "public.app-category.weather"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "web/icons/icon-512.png",
+      "category": "Utility"
+    }
+  }
+}

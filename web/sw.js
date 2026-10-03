@@ -1,0 +1,59 @@
+/* M-Alert — service worker : notifications push quand l'application est fermée. */
+'use strict';
+
+const LEVELS = { 1: 'Information', 2: 'Jaune', 3: 'Orange', 4: 'Rouge' };
+
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
+self.addEventListener('push', (event) => {
+  event.waitUntil((async () => {
+    let data = {};
+    try {
+      data = event.data ? event.data.json() : {};
+    } catch (_) { /* contenu illisible */ }
+    const alert = data.alert;
+    if (!alert) return;
+
+    // Si M-Alert est ouvert et visible, l'alerte est déjà affichée via la connexion temps réel.
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (windows.some((c) => c.visibilityState === 'visible')) return;
+
+    const deps = alert.departments.includes('ALL') ? 'Toute la France' : alert.departments.join(', ');
+    let title;
+    let body;
+    if (data.type === 'cancel') {
+      title = `Alerte levée — ${alert.title}`;
+      body = `Départements : ${deps}`;
+    } else {
+      const prefix = alert.test ? '[TEST] ' : '';
+      title = `${prefix}${alert.level === 1 ? 'Information' : 'Alerte ' + LEVELS[alert.level]} — ${alert.title}`;
+      body = `Départements : ${deps}\n${alert.description}`;
+    }
+    await self.registration.showNotification(title, {
+      body,
+      tag: alert.id,
+      renotify: data.type !== 'cancel',
+      requireInteraction: data.type !== 'cancel' && alert.level >= 3,
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      vibrate: alert.level >= 3 ? [400, 200, 400, 200, 800] : [200, 100, 200],
+      data: { id: alert.id },
+    });
+  })());
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const id = event.notification.data && event.notification.data.id;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const client = windows[0];
+    if (client) {
+      await client.focus();
+      client.postMessage({ type: 'open-alert', id });
+    } else {
+      await self.clients.openWindow('./');
+    }
+  })());
+});
