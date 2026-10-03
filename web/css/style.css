@@ -123,6 +123,8 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
 @keyframes blink { 50% { opacity: .2; } }
+/* Fenêtre cachée dans la zone de notification ou réduite : animations en pause (économie de CPU). */
+html.app-hidden *, html.app-hidden *::before, html.app-hidden *::after { animation-play-state: paused !important; }
 
 /* ---------- Alerte plein écran ---------- */
 .alert-overlay {
@@ -134,8 +136,9 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
   position: absolute; inset: 0; pointer-events: none;
   box-shadow: inset 0 0 0 10px var(--c), inset 0 0 90px var(--c);
   animation: frame-flash 1s steps(1) infinite;
+  will-change: opacity; /* l'ombre floutée est dessinée une fois, seule l'opacité change */
 }
-.alert-overlay.lvl-1 .alert-frame, .alert-overlay.lvl-2 .alert-frame { animation: frame-fade 1.6s ease-in-out infinite; }
+.alert-overlay.lvl-1 .alert-frame, .alert-overlay.lvl-2 .alert-frame { animation: frame-fade 1.6s steps(4, jump-none) infinite; }
 .alert-overlay.lvl-5 .alert-frame { animation-duration: .5s; }
 @keyframes frame-flash { 50% { opacity: .15; } }
 @keyframes frame-fade { 50% { opacity: .35; } }

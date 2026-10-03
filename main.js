@@ -62,6 +62,14 @@ function createWindow() {
   });
   win.loadFile(path.join(__dirname, 'web', 'index.html'));
 
+  // Signale à la page quand la fenêtre est cachée ou réduite, pour mettre ses animations en pause
+  // (avec backgroundThrottling désactivé, la page se croit toujours visible).
+  const sendVisibility = () => {
+    if (win && !win.isDestroyed()) win.webContents.send('visibility', win.isVisible() && !win.isMinimized());
+  };
+  for (const ev of ['show', 'hide', 'minimize', 'restore']) win.on(ev, sendVisibility);
+  win.webContents.on('did-finish-load', sendVisibility);
+
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };

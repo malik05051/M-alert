@@ -12,8 +12,10 @@
 .leaflet-control-attribution { background: rgba(11, 18, 32, .7) !important; color: var(--muted) !important; }
 .leaflet-control-attribution a { color: var(--muted) !important; }
 .leaflet-interactive:focus { outline: none; }
-/* Département en alerte : rempli de la couleur du niveau, qui clignote (plus vite en rouge et majeure). */
-path.dep-alert { animation: dep-pulse 1.4s ease-in-out infinite; }
-path.dep-alert-4 { animation-duration: .9s; }
-path.dep-alert-5 { animation-duration: .55s; }
-@keyframes dep-pulse { 0%, 100% { fill-opacity: .95; } 50% { fill-opacity: .45; } }
+/* Départements en alerte : le voile sombre (panneau alertPulse) clignote, plus vite en rouge et majeure.
+ * Seule l'opacité du panneau est animée : la carte n'est pas redessinée à chaque image. */
+.leaflet-alertPulse-pane { opacity: 0; will-change: opacity; animation: dep-pulse 1.4s steps(4, jump-none) infinite; /* par paliers : peu d'images à produire */ }
+.leaflet-alertPulse-pane[data-level="4"] { animation-duration: .9s; }
+.leaflet-alertPulse-pane[data-level="5"] { animation-duration: .55s; }
+.leaflet-alertPulse-pane[data-level=""] { display: none; animation: none; }
+@keyframes dep-pulse { 50% { opacity: .5; } }

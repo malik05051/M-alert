@@ -210,4 +210,11 @@
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,
   };
+
+  // Application de bureau : l'arrière-plan n'étant pas ralenti (pour que les alertes sonnent fenêtre
+  // cachée), la page se croit toujours visible. Le processus principal signale donc quand la fenêtre
+  // est cachée ou réduite, et les animations sont mises en pause.
+  if (window.malertNative && window.malertNative.onVisibility) {
+    window.malertNative.onVisibility((visible) => document.documentElement.classList.toggle('app-hidden', !visible));
+  }
 })();

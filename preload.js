@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('malertNative', {
   onOpenSettings: (cb) => ipcRenderer.on('open-settings', () => cb()),
   onTestAlert: (cb) => ipcRenderer.on('test-alert', () => cb()),
   onResume: (cb) => ipcRenderer.on('resume', () => cb()),
+  onVisibility: (cb) => ipcRenderer.on('visibility', (_e, visible) => cb(visible)),
   getUpdateStatus: () => ipcRenderer.invoke('update-get'),
   checkForUpdates: () => ipcRenderer.send('update-check'),
   installUpdate: () => ipcRenderer.send('update-install'),

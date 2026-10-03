@@ -63,21 +63,57 @@
       return style;
     }
 
+    // Le style n'est réappliqué que s'il a changé : chaque setStyle redessine la carte.
     function refreshLayer(code) {
       const layer = layers[code];
       if (!layer) return;
-      layer.setStyle(styleFor(code));
-      const path = layer.getElement && layer.getElement();
-      if (path) {
-        path.classList.toggle('dep-alert', Boolean(state.alertLevels[code]));
-        for (let l = 1; l <= 5; l++) path.classList.toggle(`dep-alert-${l}`, state.alertLevels[code] === l);
-      }
+      const style = styleFor(code);
+      const key = JSON.stringify(style);
+      if (layer._malertStyle === key) return;
+      layer._malertStyle = key;
+      layer.setStyle(style);
       // Les contours importants passent au premier plan pour rester visibles.
       if (state.alertLevels[code] || state.selected.has(code) || state.highlighted.has(code)) layer.bringToFront();
     }
 
+    // Clignotement des départements en alerte : un voile sombre posé dans son propre panneau, dont
+    // seule l'opacité est animée (par la carte graphique, sans redessiner la carte). Animer
+    // fill-opacity sur les contours obligeait à redessiner tout le SVG ~60 fois par seconde.
+    // Le contour blanc est tracé au-dessus du voile pour rester net.
+    const pulsePane = map.createPane('alertPulse');
+    const edgePane = map.createPane('alertEdge');
+    pulsePane.style.zIndex = 410;
+    edgePane.style.zIndex = 420;
+    pulsePane.style.pointerEvents = edgePane.style.pointerEvents = 'none';
+    pulsePane.dataset.level = '';
+    const pulseRenderer = L.svg({ pane: 'alertPulse' });
+    const edgeRenderer = L.svg({ pane: 'alertEdge' });
+    const pulseGroup = L.layerGroup().addTo(map);
+    const edgeGroup = L.layerGroup().addTo(map);
+    let pulseKey = '';
+
+    function renderPulse() {
+      const codes = Object.keys(state.alertLevels).filter((c) => layers[c]).sort();
+      const key = codes.map((c) => `${c}:${state.alertLevels[c]}:${state.selected.has(c) ? 1 : 0}`).join(',');
+      if (key === pulseKey) return;
+      pulseKey = key;
+      pulseGroup.clearLayers();
+      edgeGroup.clearLayers();
+      let max = 0;
+      for (const c of codes) {
+        const latlngs = layers[c].getLatLngs();
+        max = Math.max(max, state.alertLevels[c]);
+        pulseGroup.addLayer(L.polygon(latlngs, { renderer: pulseRenderer, interactive: false, stroke: false, fillColor: '#0b1220', fillOpacity: 1 }));
+        if (!state.selected.has(c)) {
+          edgeGroup.addLayer(L.polygon(latlngs, { renderer: edgeRenderer, interactive: false, fill: false, color: '#ffffff', weight: 3.5 }));
+        }
+      }
+      pulsePane.dataset.level = max ? String(max) : '';
+    }
+
     function refreshAll() {
       Object.keys(layers).forEach(refreshLayer);
+      renderPulse();
     }
 
     const geo = L.geoJSON(window.MALERT_DEPARTMENTS, {
@@ -92,6 +128,7 @@
           offset: [0, -8],
         });
         layer.on('mouseover', () => {
+          layer._malertStyle = null;
           layer.setStyle({ weight: Math.max(2.5, styleFor(code).weight), color: '#ffffff' });
         });
         layer.on('mouseout', () => refreshLayer(code));
@@ -121,7 +158,6 @@
         }
         state.alertLevels = levels;
         refreshAll();
-
       },
 
       setHighlighted(codes) {
