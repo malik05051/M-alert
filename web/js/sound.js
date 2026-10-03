@@ -4,7 +4,8 @@
  *   information.mp3  information (niveau 1)
  *   eew.mp3          jaune et orange
  *   rouge.mp3        rouge
- *   majeur.mp3       majeure, tsunami et vagues-submersion (quel que soit le niveau)
+ *   majeur.mp3       majeure
+ *   tsunami.mp3      crues, pluie-inondation, tsunami et vagues-submersion (quel que soit le niveau)
  * Si un fichier manque ou ne peut pas être lu, une sirène synthétique est jouée.
  */
 (function () {
@@ -44,13 +45,15 @@
     return !c || c.state !== 'running';
   }
 
-  const TSUNAMI_PHENOMENON = 9; // Vagues-submersion
+  // Phénomènes météo liés à l'eau : pluie-inondation (2), crues (4), vagues-submersion (9).
+  const WATER_PHENOMENA = [2, 4, 9];
 
   /** Fichier son d'une alerte (ou d'un simple niveau). */
   function soundFile(alert) {
     const level = alert.level;
     const category = alert.category || 'meteo';
-    if (level >= 5 || category === 'tsunami' || (category === 'meteo' && Number(alert.phenomenon) === TSUNAMI_PHENOMENON)) return 'majeur';
+    if (category === 'tsunami' || (category === 'meteo' && WATER_PHENOMENA.includes(Number(alert.phenomenon)))) return 'tsunami';
+    if (level >= 5) return 'majeur';
     if (level === 4) return 'rouge';
     if (level >= 2) return 'eew';
     return 'information';

@@ -12,7 +12,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 
 - **Carte interactive** des départements, colorés selon la **vigilance Météo-France** (vert, jaune, orange, rouge, et rose pour le niveau **majeur** fixé par M-Alert), pour aujourd'hui et demain. Survolez un département pour voir les phénomènes (orages, vent, crues…).
 - **Alerte plein écran** dans le style de JQuake / GlobalQuake : cadre clignotant à la couleur du niveau, titre, départements concernés, description et consignes.
-- **Son d'alerte** selon le niveau (information ; jaune et orange ; rouge ; majeure), avec un son dédié aux tsunamis et vagues-submersion. Pour l'orange, le rouge et la majeure, le son peut être répété jusqu'à « J'ai compris ».
+- **Son d'alerte** selon le niveau (information ; jaune et orange ; rouge ; majeure), avec un son dédié aux crues, inondations, tsunamis et vagues-submersion. Pour l'orange, le rouge et la majeure, le son peut être répété jusqu'à « J'ai compris ».
 - **Notification système** avec la description de l'alerte.
 - **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité et les mêmes frontières noires que la vigilance.
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
@@ -20,7 +20,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
 - Une alerte **modifiée** depuis M-Alert-sender est mise à jour en direct ; elle sonne de nouveau si son niveau monte ou si votre département vient d'être ajouté.
 - La vigilance peut être **corrigée ou saisie à la main** depuis M-Alert-sender, que l'API Météo-France fonctionne ou soit en panne : badges « Vigilance corrigée » / « Vigilance manuelle » et mention « ✎ corrigé par M-Alert » sur les départements concernés.
-- **Catégories d'alertes** : 🌦️ Météo, 🏚️ Tremblement de terre, 🌊 Tsunami, 🏭 Pollution, 🚨 Accident, 📢 Grève, 🚧 Blocus / manifestation, chacune avec ses consignes. Chaque catégorie peut être désactivée dans les réglages.
+- **Catégories d'alertes** : 🌦️ Météo, 🏚️ Tremblement de terre, 🌊 Tsunami, 🌫️ Pollution, 🏭 Accident industriel, 📢 Grève, 🚧 Blocus / manifestation, chacune avec ses consignes. Chaque catégorie peut être désactivée dans les réglages.
 - **Réglages** : département principal, autres départements suivis, catégories d'alertes reçues, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
 
 ## Utilisation
@@ -84,7 +84,8 @@ Les sons sont dans `web/sounds/` :
 | `information.mp3` | Information |
 | `eew.mp3` | Jaune et orange |
 | `rouge.mp3` | Rouge |
-| `majeur.mp3` | Majeure (rose), **tsunami** et **vagues-submersion**, quel que soit le niveau |
+| `majeur.mp3` | Majeure (rose) |
+| `tsunami.mp3` | **Crues**, **pluie-inondation**, **tsunami** et **vagues-submersion**, quel que soit le niveau |
 
 Pour changer un son, remplacez le fichier en gardant son nom (sans fichier, une sirène synthétique est jouée). Réglages > **Tester une alerte** permet de vérifier le son, l'affichage et les notifications.
 
