@@ -1,10 +1,11 @@
 /* M-Alert — son d'alerte.
  *
- * Pour utiliser vos propres sons, déposez des fichiers dans web/sounds/ :
- *   alerte-1.mp3 (information), alerte-2.mp3 (jaune), alerte-3.mp3 (orange), alerte-4.mp3 (rouge),
- *   alerte-5.mp3 (majeure)
- *   ou un seul fichier alerte.mp3 utilisé pour tous les niveaux.
- * Si aucun fichier n'est présent, une sirène synthétique est jouée.
+ * Sons (dossier web/sounds/) :
+ *   information.mp3  information (niveau 1)
+ *   eew.mp3          jaune et orange
+ *   rouge.mp3        rouge
+ *   majeur.mp3       majeure, tsunami et vagues-submersion (quel que soit le niveau)
+ * Si un fichier manque ou ne peut pas être lu, une sirène synthétique est jouée.
  */
 (function () {
   'use strict';
@@ -41,6 +42,18 @@
   function isLocked() {
     const c = audioContext();
     return !c || c.state !== 'running';
+  }
+
+  const TSUNAMI_PHENOMENON = 9; // Vagues-submersion
+
+  /** Fichier son d'une alerte (ou d'un simple niveau). */
+  function soundFile(alert) {
+    const level = alert.level;
+    const category = alert.category || 'meteo';
+    if (level >= 5 || category === 'tsunami' || (category === 'meteo' && Number(alert.phenomenon) === TSUNAMI_PHENOMENON)) return 'majeur';
+    if (level === 4) return 'rouge';
+    if (level >= 2) return 'eew';
+    return 'information';
   }
 
   function tryFile(src, volume, loop) {
@@ -133,17 +146,19 @@
 
   /**
    * Joue le son d'alerte.
-   * @param {number} level 1 à 4
+   * @param {number|{level: number, category?: string, phenomenon?: number}} what niveau (1 à 5) ou alerte
    * @param {{volume?: number, loop?: boolean, maxSeconds?: number}} opts
    */
-  async function play(level, opts = {}) {
+  async function play(what, opts = {}) {
     stop();
+    const alert = typeof what === 'object' && what ? what : { level: Number(what) };
+    const level = Math.max(1, Math.min(5, Number(alert.level) || 1));
     const token = loopToken;
     const volume = Math.max(0, Math.min(1, opts.volume == null ? 0.8 : opts.volume));
     const loop = Boolean(opts.loop);
     const maxMs = (opts.maxSeconds || 120) * 1000;
 
-    for (const src of [`sounds/alerte-${level}.mp3`, 'sounds/alerte.mp3']) {
+    for (const src of [`sounds/${soundFile({ ...alert, level })}.mp3`]) {
       const a = await tryFile(src, volume, loop);
       if (token !== loopToken) {
         if (a) a.pause();
@@ -165,5 +180,5 @@
     again();
   }
 
-  window.MAlertSound = { play, stop, unlock, isLocked };
+  window.MAlertSound = { play, stop, unlock, isLocked, soundFile };
 })();

@@ -26,7 +26,7 @@ self.addEventListener('push', (event) => {
       title = `Alerte levée — ${alert.title}`;
       body = `Départements : ${deps}`;
     } else {
-      const prefix = alert.test ? '[TEST] ' : '';
+      const prefix = (alert.test ? '[TEST] ' : '') + (data.type === 'update' ? 'Mise à jour · ' : '');
       title = `${prefix}${alert.level === 1 ? 'Information' : alert.level === 5 ? 'ALERTE MAJEURE' : 'Alerte ' + LEVELS[alert.level]} — ${alert.title}`;
       body = `Départements : ${deps}\n${alert.description}`;
     }

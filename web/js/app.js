@@ -167,7 +167,7 @@
     return `<div class="alert-item ${isMine(a) ? 'mine' : ''}" data-alert="${a.id}" style="border-left-color:${lv.color}">
       <div class="t"><span class="tag" style="background:${lv.color};color:${lv.text}">${lv.name}</span>${a.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(a.title)}</div>
       <div class="m">${ph.icon} ${escapeHtml(ph.name)} · ${escapeHtml(M.departmentsLabel(a.departments, 3))}</div>
-      <div class="m">${M.relativeTime(a.createdAt)} · jusqu'à ${M.formatTime(a.expiresAt)}</div>
+      <div class="m">${M.relativeTime(a.createdAt)}${a.updatedAt ? ` · modifiée ${M.relativeTime(a.updatedAt)}` : ''} · jusqu'à ${M.formatTime(a.expiresAt)}</div>
     </div>`;
   }
 
@@ -283,7 +283,7 @@
     $('ovLevel').textContent = M.levelLabel(alert.level);
     $('ovPhen').textContent = `${ph.icon} ${ph.name}`;
     $('ovTest').classList.toggle('hidden', !alert.test);
-    $('ovTime').textContent = M.formatDateTime(alert.createdAt);
+    $('ovTime').textContent = M.formatDateTime(alert.createdAt) + (alert.updatedAt ? ` · modifiée ${M.formatTime(alert.updatedAt)}` : '');
     $('ovTitle').textContent = alert.title;
     $('ovDeps').textContent = M.departmentsLabel(alert.departments, 8);
     $('ovDesc').textContent = alert.description;
@@ -335,7 +335,7 @@
     }
   }
 
-  function trigger(alert) {
+  function trigger(alert, { updated } = {}) {
     if (seen.has(alert.id)) return;
     // Catégorie désactivée dans les réglages : aucune alerte sonore ni message.
     if (!wantsCategory(alert)) {
@@ -358,7 +358,7 @@
     map.focus(alert.departments);
 
     if (settings.sound) {
-      window.MAlertSound.play(alert.level, {
+      window.MAlertSound.play(alert, {
         volume: settings.volume,
         loop: settings.repeat && alert.level >= 3,
       });
@@ -367,7 +367,7 @@
       }, 1000);
     }
     const lv = LEVELS[alert.level];
-    const prefix = alert.test ? '[TEST] ' : '';
+    const prefix = (alert.test ? '[TEST] ' : '') + (updated ? 'MISE À JOUR · ' : '');
     systemNotification(
       `${prefix}${M.alertKind(alert).icon} ${M.levelLabel(alert.level)} — ${alert.title}`,
       `${M.departmentsLabel(alert.departments, 3)}\n${alert.description}`,
@@ -377,6 +377,36 @@
     // L'identifiant est mémorisé à l'acquittement ; on le note aussi ici pour ne pas
     // rejouer l'alerte si l'application est rechargée avant.
     markSeen(alert.id);
+  }
+
+  // Alerte modifiée depuis M-Alert-sender.
+  function onAlertUpdated(alert, previous) {
+    const before = previous && previous.departments ? { ...alert, ...previous } : null;
+    const concernedBefore = Boolean(before && matchesMe(before));
+    const concernedNow = M.isActive(alert) && matchesMe(alert);
+    const lv = LEVELS[alert.level];
+    if (concernedNow && (!concernedBefore || alert.level > before.level)) {
+      // Mon département vient d'être ajouté ou le niveau monte : nouvelle alerte sonore.
+      if (current && current.id === alert.id) {
+        window.MAlertSound.stop();
+        current = null;
+      }
+      seen.delete(alert.id);
+      trigger(alert, { updated: true });
+      return;
+    }
+    if (current && current.id === alert.id) {
+      if (concernedNow) showOverlay(alert, { silent: $('ovMute').classList.contains('hidden') });
+      else acknowledge();
+    }
+    if (concernedNow) {
+      toast(`Alerte modifiée : ${alert.title}`, M.departmentsLabel(alert.departments, 3), lv.color, () => {
+        map.focus(alert.departments);
+        showOverlay(alert, { silent: true });
+      });
+    } else if (concernedBefore) {
+      toast(`Vos départements ne sont plus concernés : ${alert.title}`, M.departmentsLabel(alert.departments, 3), '#34d399');
+    }
   }
 
   // Vigilance : prévenir quand le niveau de mes départements augmente.
@@ -482,6 +512,16 @@
         renderAll();
         trigger(msg.alert);
         break;
+      case 'update': {
+        const a = msg.alert;
+        alerts = alerts.filter((x) => x.id !== a.id);
+        if (M.isActive(a)) alerts.push(a);
+        const qi = queue.findIndex((x) => x.id === a.id);
+        if (qi >= 0) queue[qi] = a;
+        renderAll();
+        onAlertUpdated(a, msg.previous);
+        break;
+      }
       case 'cancel':
       case 'expire': {
         const a = msg.alert;
@@ -723,7 +763,7 @@
     dlg.close();
     if (current) acknowledge();
     showOverlay(test);
-    if ($('setSound').checked) window.MAlertSound.play(level, { volume: Number($('setVolume').value), loop: false });
+    if ($('setSound').checked) window.MAlertSound.play(test, { volume: Number($('setVolume').value), loop: false });
     systemNotification('[TEST] Alerte M-Alert', test.description, { tag: test.id });
     if (native) native.alert({ level, front: false });
   });

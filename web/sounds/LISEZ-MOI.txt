@@ -1,15 +1,12 @@
 Sons d'alerte M-Alert
 =====================
 
-Déposez ici vos fichiers audio (MP3) :
+  information.mp3  -> niveau « Information »
+  eew.mp3          -> vigilance Jaune et Orange
+  rouge.mp3        -> vigilance Rouge
+  majeur.mp3       -> niveau Majeure (rose), tsunami et vagues-submersion (quel que soit le niveau)
 
-  alerte-1.mp3   -> niveau « Information »
-  alerte-2.mp3   -> niveau Jaune
-  alerte-3.mp3   -> niveau Orange
-  alerte-4.mp3   -> niveau Rouge
-  alerte-5.mp3   -> niveau Majeure (rose)
-  alerte.mp3     -> son unique utilisé si le fichier du niveau n'existe pas
-
-Si aucun fichier n'est présent, M-Alert joue une sirène synthétique.
+Pour changer un son, remplacez le fichier en gardant son nom.
+Si un fichier manque, M-Alert joue une sirène synthétique.
 Pour l'orange, le rouge et la majeure, le son est répété jusqu'à « J'ai compris »
 (réglable dans les réglages).
