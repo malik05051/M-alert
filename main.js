@@ -1,0 +1,127 @@
+'use strict';
+
+/* M-Alert — application de bureau (Electron) pour Windows et Linux.
+ * La fenêtre charge l'interface du dossier web/. Quand on la ferme, M-Alert continue en
+ * arrière-plan dans la zone de notification et reste à l'écoute des alertes, comme JQuake.
+ */
+
+const path = require('path');
+const { app, BrowserWindow, ipcMain, shell, powerMonitor } = require('electron');
+const bg = require('./background');
+
+const APP_ID = 'fr.malert.app';
+const ICON = path.join(__dirname, 'web', 'icons', 'icon-512.png');
+let win = null;
+let tray = null;
+let quitting = false;
+let settings = null;
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  // Relancer M-Alert alors qu'il tourne en arrière-plan rouvre simplement la fenêtre.
+  app.on('second-instance', () => showWindow());
+}
+
+// Nécessaire pour les notifications Windows (doit correspondre à l'appId de l'installateur).
+if (process.platform === 'win32') app.setAppUserModelId(app.isPackaged ? APP_ID : process.execPath);
+
+function showWindow() {
+  if (!win) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+function quit() {
+  quitting = true;
+  app.quit();
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1280,
+    height: 820,
+    minWidth: 760,
+    minHeight: 520,
+    backgroundColor: '#0b1220',
+    title: 'M-Alert',
+    icon: ICON,
+    show: !bg.startHidden(),
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      // Les alertes doivent pouvoir sonner sans clic préalable, même fenêtre cachée.
+      autoplayPolicy: 'no-user-gesture-required',
+      backgroundThrottling: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, 'web', 'index.html'));
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  win.on('close', (e) => {
+    if (quitting || !settings.background) return;
+    e.preventDefault();
+    win.hide();
+    bg.notifyHiddenOnce(settings, 'M-Alert reste actif', ICON);
+  });
+}
+
+ipcMain.on('show-window', showWindow);
+
+ipcMain.on('alert', (_e, { level, front }) => {
+  if (!win) return;
+  if (front) {
+    showWindow();
+    // Passe brièvement au premier plan, comme JQuake lors d'un séisme.
+    win.setAlwaysOnTop(true, 'screen-saver');
+    setTimeout(() => win && win.setAlwaysOnTop(false), level >= 3 ? 15000 : 4000);
+  }
+  win.flashFrame(true);
+  setTimeout(() => win && win.flashFrame(false), 10000);
+});
+
+ipcMain.handle('get-native-settings', () => ({
+  platform: process.platform,
+  background: settings.background,
+  autostart: bg.getAutostart(APP_ID),
+}));
+
+ipcMain.on('set-native-settings', (_e, values) => {
+  if (typeof values.background === 'boolean') settings.background = values.background;
+  bg.saveSettings(settings);
+  if (typeof values.autostart === 'boolean') {
+    try {
+      bg.setAutostart(APP_ID, 'M-Alert', ICON, values.autostart);
+    } catch (err) {
+      console.error('Lancement au démarrage :', err.message);
+    }
+  }
+});
+
+app.whenReady().then(() => {
+  settings = bg.loadSettings();
+  createWindow();
+  tray = bg.createTray(ICON, 'M-Alert — à l\'écoute des alertes', [
+    { label: 'Ouvrir M-Alert', click: showWindow },
+    { label: 'Réglages', click: () => { showWindow(); win.webContents.send('open-settings'); } },
+    { label: 'Tester une alerte', click: () => { showWindow(); win.webContents.send('test-alert'); } },
+    { type: 'separator' },
+    { label: 'Quitter M-Alert', click: quit },
+  ], showWindow);
+
+  // Après une mise en veille, la connexion est rétablie immédiatement.
+  powerMonitor.on('resume', () => win && win.webContents.send('resume'));
+  powerMonitor.on('unlock-screen', () => win && win.webContents.send('resume'));
+});
+
+app.on('before-quit', () => { quitting = true; });
+app.on('window-all-closed', () => {
+  if (!settings || !settings.background) app.quit();
+});

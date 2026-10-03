@@ -1,0 +1,87 @@
+{
+  "name": "m-alert",
+  "productName": "M-Alert",
+  "version": "1.0.0",
+  "description": "Réception des alertes météo M-Alert avec carte de vigilance Météo-France",
+  "author": "malik05051",
+  "homepage": "https://github.com/malik05051/M-alert",
+  "main": "main.js",
+  "desktopName": "m-alert.desktop",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "web": "npx --yes http-server web -p 5173 -c-1",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "fr.malert.app",
+    "productName": "M-Alert",
+    "files": [
+      "main.js",
+      "preload.js",
+      "background.js",
+      "web/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "web/icons/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "web/icons/icon-512.png",
+      "category": "Utility",
+      "maintainer": "malik05051 <malik05051@users.noreply.github.com>",
+      "synopsis": "Réception des alertes météo M-Alert avec carte de vigilance Météo-France",
+      "syncDesktopName": true
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "deb": {
+      "artifactName": "${productName}-${version}-amd64.${ext}"
+    }
+  }
+}

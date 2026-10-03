@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>M-Alert</title>
+  <meta name="description" content="Alertes météo en temps réel par département">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icons/icon.svg" alt=""><span>M-Alert</span></div>
+    <div class="status" id="status" data-state="connecting">
+      <span class="dot"></span><span id="statusText">Connexion…</span>
+    </div>
+    <span class="badge-demo hidden" id="vigBadge"></span>
+    <div class="spacer"></div>
+    <div class="seg" id="dayToggle" role="tablist" aria-label="Échéance de la vigilance">
+      <button type="button" data-day="0" class="active">Aujourd'hui</button>
+      <button type="button" data-day="1">Demain</button>
+    </div>
+    <div class="clock" id="clock"></div>
+    <button type="button" id="btnSettings" class="icon-btn" title="Réglages" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.4-2.9a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" transform="translate(-1 0)"/></svg>
+    </button>
+  </header>
+
+  <main class="layout">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="map-caption" id="mapCaption"></div>
+    </div>
+
+    <aside class="panel">
+      <section class="card" id="myDepCard"></section>
+      <section class="card hidden" id="selectedCard"></section>
+      <section class="card">
+        <h2>Alertes en cours <span class="count" id="alertCount">0</span></h2>
+        <div id="alertList" class="alert-list"></div>
+      </section>
+      <section class="card legend">
+        <h2>Vigilance Météo-France</h2>
+        <div class="legend-row">
+          <span><i style="background:var(--vig-1)"></i>Vert</span>
+          <span><i style="background:var(--vig-2)"></i>Jaune</span>
+          <span><i style="background:var(--vig-3)"></i>Orange</span>
+          <span><i style="background:var(--vig-4)"></i>Rouge</span>
+        </div>
+        <p class="muted small" id="vigInfo"></p>
+        <p class="muted small">Contour clignotant : alerte M-Alert en cours. Contour blanc : vos départements.</p>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Alerte plein écran (style JQuake) -->
+  <div id="alertOverlay" class="alert-overlay hidden" role="alertdialog" aria-live="assertive" aria-labelledby="ovTitle">
+    <div class="alert-frame"></div>
+    <div class="alert-banner">
+      <div class="alert-head">
+        <span class="alert-level" id="ovLevel"></span>
+        <span class="alert-phen" id="ovPhen"></span>
+        <span class="alert-test hidden" id="ovTest">TEST</span>
+        <span class="spacer"></span>
+        <span class="alert-time" id="ovTime"></span>
+      </div>
+      <h1 id="ovTitle"></h1>
+      <p class="alert-deps" id="ovDeps"></p>
+      <div class="alert-body">
+        <p id="ovDesc"></p>
+        <div id="ovAdviceWrap" class="advice"><strong>Consignes</strong><p id="ovAdvice"></p></div>
+      </div>
+      <div class="alert-foot">
+        <span class="muted small" id="ovValid"></span>
+        <span class="spacer"></span>
+        <span class="muted small" id="ovQueue"></span>
+        <button type="button" class="btn ghost" id="ovMute">Couper le son</button>
+        <button type="button" class="btn primary" id="ovAck">J'ai compris</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="soundHint" class="sound-hint hidden" role="button" tabindex="0">🔇 Touchez l'écran pour autoriser le son des alertes</div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Réglages -->
+  <dialog id="settings" class="settings">
+    <form method="dialog" id="settingsForm">
+      <header>
+        <h2 id="settingsTitle">Réglages</h2>
+        <button type="button" class="icon-btn" id="settingsClose" aria-label="Fermer">✕</button>
+      </header>
+      <p class="welcome hidden" id="welcomeText">
+        Bienvenue ! Choisissez votre département pour recevoir les alertes météo diffusées par M-Alert.
+        Vous entendrez une alerte sonore et recevrez une notification dès qu'une alerte concerne votre département.
+      </p>
+
+      <fieldset>
+        <legend>Département</legend>
+        <label class="field">Mon département
+          <select id="setDep" required></select>
+        </label>
+        <label class="field">Autres départements suivis
+          <input type="search" id="extraFilter" placeholder="Rechercher un département…">
+        </label>
+        <div class="chips-picker" id="setExtra"></div>
+        <label class="check"><input type="checkbox" id="setAll"> Recevoir les alertes de toute la France</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Alerte</legend>
+        <label class="field">Niveau minimum pour sonner et notifier
+          <select id="setMinLevel">
+            <option value="1">Toutes (dès « Information »)</option>
+            <option value="2">Jaune et plus</option>
+            <option value="3">Orange et plus</option>
+            <option value="4">Rouge uniquement</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" id="setSound"> Son d'alerte</label>
+        <label class="field">Volume <input type="range" id="setVolume" min="0" max="1" step="0.05"></label>
+        <label class="check"><input type="checkbox" id="setRepeat"> Répéter le son jusqu'à « J'ai compris » (orange et rouge)</label>
+        <label class="check"><input type="checkbox" id="setVigNotify"> Me prévenir quand la vigilance de mes départements passe en jaune, orange ou rouge</label>
+        <label class="check native-only hidden"><input type="checkbox" id="setFront"> Afficher la fenêtre au premier plan lors d'une alerte</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Notifications</legend>
+        <div class="row">
+          <span id="notifState" class="muted small"></span>
+          <button type="button" class="btn small" id="btnNotif">Autoriser les notifications</button>
+        </div>
+        <label class="check push-only hidden"><input type="checkbox" id="setPush"> Recevoir les alertes même quand l'application est fermée (push)</label>
+        <p class="muted small push-only hidden" id="pushState"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Application</legend>
+        <label class="check"><input type="checkbox" id="setTiles"> Fond de carte détaillé (villes, routes)</label>
+        <label class="check native-only hidden"><input type="checkbox" id="setBackground"> Continuer en arrière-plan quand la fenêtre est fermée (icône dans la zone de notification)</label>
+        <label class="check native-only hidden"><input type="checkbox" id="setAutostart"> Lancer M-Alert au démarrage de l'ordinateur (en arrière-plan)</label>
+        <label class="field">Adresse du serveur M-Alert
+          <input type="url" id="setServer" placeholder="https://mon-serveur-malert.onrender.com" autocomplete="off">
+        </label>
+      </fieldset>
+
+      <footer>
+        <button type="button" class="btn ghost" id="btnTest">Tester une alerte</button>
+        <span class="spacer"></span>
+        <button type="submit" class="btn primary" id="btnSave">Enregistrer</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="data/departements.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
