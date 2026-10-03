@@ -121,6 +121,31 @@
     });
     ro.observe(document.getElementById(elementId));
 
+    // Cache hors de France : un polygone de la couleur du fond couvrant le monde entier, percé
+    // de chaque département. Placé au-dessus des noms de villes, il masque les autres pays.
+    let mask = null;
+    function franceMask() {
+      if (mask) return mask;
+      if (!map.getPane('mask')) {
+        const pane = map.createPane('mask');
+        pane.style.zIndex = 460;
+        pane.style.pointerEvents = 'none';
+      }
+      const holes = [];
+      for (const layer of Object.values(layers)) {
+        const latlngs = layer.getLatLngs();
+        // Polygon : [contour, trous…] ; MultiPolygon : [[contour, trous…], …]
+        const polygons = Array.isArray(latlngs[0][0]) ? latlngs : [latlngs];
+        for (const polygon of polygons) holes.push(polygon[0]);
+      }
+      const world = [[-89, -179.9], [89, -179.9], [89, 179.9], [-89, 179.9]];
+      const bg = getComputedStyle(map.getContainer()).backgroundColor || '#0b1220';
+      mask = L.polygon([world, ...holes], {
+        pane: 'mask', renderer: L.svg({ pane: 'mask' }), interactive: false, stroke: false, fillColor: bg, fillOpacity: 1,
+      });
+      return mask;
+    }
+
     return {
       leaflet: map,
 
@@ -162,6 +187,7 @@
           tiles = L.layerGroup([
             esri('World_Dark_Gray_Base', { attribution: 'Fond de carte © Esri, HERE, Garmin, © OpenStreetMap' }),
             esri('World_Dark_Gray_Reference', { pane: 'labels' }),
+            franceMask(),
           ]).addTo(map);
         } else if (!enabled && tiles) {
           map.removeLayer(tiles);
