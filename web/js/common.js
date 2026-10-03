@@ -143,6 +143,13 @@
     if (v.error) {
       return { text: '⚠ Vigilance non à jour', cls: 'badge-demo', title: `${v.error} — affichage des dernières données reçues.` };
     }
+    if (v.corrections) {
+      return {
+        text: 'Vigilance corrigée',
+        cls: 'badge-manual',
+        title: `Vigilance Météo-France avec ${v.corrections} département(s) corrigé(s) manuellement par M-Alert.`,
+      };
+    }
     return null;
   }
 

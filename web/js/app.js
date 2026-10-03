@@ -85,6 +85,7 @@
     let html = `<div class="tt-title">${escapeHtml(nom)} (${code})</div>`;
     html += `<div class="tt-row">Vigilance ${day ? 'demain' : 'aujourd\'hui'} : <b style="color:${VIGILANCE[level].color}">${VIGILANCE[level].name}</b></div>`;
     html += phenRows(vig);
+    if (vig && vig.manual) html += '<div class="tt-row">✎ Corrigé par M-Alert</div>';
     for (const a of al) {
       html += `<div class="tt-row" style="margin-top:4px"><span class="tag" style="background:${LEVELS[a.level].color};color:${LEVELS[a.level].text}">${LEVELS[a.level].name}</span>${escapeHtml(a.title)}</div>`;
     }
@@ -114,6 +115,9 @@
         return `<li><span class="sw" style="background:${VIGILANCE[p.level].color}"></span>${ph.icon} ${escapeHtml(ph.name)} — ${VIGILANCE[p.level].name.toLowerCase()}</li>`;
       }).join('')}</ul>`
       : `<p class="muted small" style="margin:0">Pas de phénomène particulier ${day ? 'demain' : 'aujourd\'hui'}.</p>`;
+    const corrected = shown && shown.manual && vigilance && vigilance.source !== 'manual'
+      ? '<p class="small" style="margin:8px 0 0;color:#c4b5fd">✎ Vigilance corrigée manuellement par M-Alert.</p>'
+      : '';
     const al = alertsFor(code);
     const alertHtml = al.length
       ? `<div class="alert-list" style="margin-top:10px">${al.map(alertItemHtml).join('')}</div>`
@@ -122,7 +126,7 @@
       <h2>${mine ? 'Mon département' : 'Département sélectionné'}</h2>
       <p class="dep-title">${escapeHtml(M.departmentName(code))}</p>
       <div class="vig-pills">${pill(today, 'Aujourd\'hui')}${pill(tomorrow, 'Demain')}</div>
-      ${phen}${alertHtml}`;
+      ${phen}${corrected}${alertHtml}`;
   }
 
   function renderMyDep() {
@@ -191,7 +195,7 @@
     }
     info.textContent = vigilance.source === 'manual'
       ? `Vigilance saisie manuellement par M-Alert${vigilance.reason === 'api-down' ? ' (API Météo-France indisponible)' : ''} · ${M.formatDateTime(vigilance.updatedAt)}`
-      : `Mise à jour : ${M.formatDateTime(vigilance.updatedAt)}${vigilance.error ? ' · ⚠ ' + vigilance.error : ''}`;
+      : `Mise à jour : ${M.formatDateTime(vigilance.updatedAt)}${vigilance.corrections ? ` · ${vigilance.corrections} département(s) corrigé(s) par M-Alert` : ''}${vigilance.error ? ' · ⚠ ' + vigilance.error : ''}`;
     $('mapCaption').textContent = `Vigilance ${day ? 'de demain' : 'd\'aujourd\'hui'} · ${M.formatDateTime(p.begin)} → ${M.formatDateTime(p.end)}`;
   }
 
