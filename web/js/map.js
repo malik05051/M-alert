@@ -34,19 +34,25 @@
         fillColor: VIGILANCE[level] ? VIGILANCE[level].color : VIGILANCE[0].color,
         fillOpacity: tiles ? 0.55 : 0.85,
         color: '#0b1220',
-        weight: 0.8,
+        weight: 1.1,
         opacity: 1,
         dashArray: null,
       };
+      // Vos départements : contour blanc en pointillés.
       if (state.highlighted.has(code)) {
         style.color = '#ffffff';
-        style.weight = 2.5;
+        style.weight = 2;
+        style.dashArray = '5 4';
       }
-      // Alerte M-Alert en cours : tout le département prend la couleur du niveau d'alerte.
+      // Alerte M-Alert en cours : tout le département prend la couleur du niveau d'alerte, avec un
+      // contour blanc épais (largeur fixe à l'écran : les petits départements restent visibles).
       const alertLevel = state.alertLevels[code];
       if (alertLevel) {
         style.fillColor = LEVELS[alertLevel].color;
         style.fillOpacity = tiles ? 0.75 : 0.95;
+        style.color = '#ffffff';
+        style.weight = 3.5;
+        style.dashArray = null;
       }
       if (state.selected.has(code)) {
         style.color = '#22d3ee';
@@ -86,7 +92,7 @@
           offset: [0, -8],
         });
         layer.on('mouseover', () => {
-          layer.setStyle({ weight: Math.max(2, styleFor(code).weight), color: '#ffffff' });
+          layer.setStyle({ weight: Math.max(2.5, styleFor(code).weight), color: '#ffffff' });
         });
         layer.on('mouseout', () => refreshLayer(code));
         layer.on('click', (e) => {
