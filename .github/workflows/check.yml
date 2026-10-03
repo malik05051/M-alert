@@ -1,0 +1,16 @@
+name: Vérification des tuiles
+on: push
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for name in World_Dark_Gray_Base World_Dark_Gray_Reference; do
+            for t in 6/22/32 8/90/129 10/360/518; do
+              u="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/$name/MapServer/tile/$t"
+              curl -sS -o tile.bin -w "$name $t -> %{http_code} %{content_type} %{size_download} octets\n" -H "Referer: https://malik05051.github.io/M-alert/" "$u"
+              file tile.bin
+            done
+          done
+          echo "--- CARTO sans clé (pour comparaison)"
+          curl -sS -o c.png -w "carto -> %{http_code} %{size_download} octets\n" https://a.basemaps.cartocdn.com/dark_all/6/32/22.png
