@@ -27,6 +27,51 @@
     return ctx;
   }
 
+  // Version web : les MP3 sont joués par Web Audio. Safari (iPhone, Mac) et parfois Firefox refusent
+  // de lancer un élément <audio> sans clic de l'utilisateur, ce qui faisait jouer la sirène de
+  // secours ; un contexte Web Audio débloqué une fois peut, lui, jouer à tout moment.
+  // (Application de bureau : fichiers locaux, lus par l'élément <audio> qui y est autorisé.)
+  const WEB = /^https?:$/.test(location.protocol);
+  const buffers = new Map(); // nom du son -> Promise<AudioBuffer>
+  let sources = [];
+
+  function loadBuffer(name) {
+    if (!buffers.has(name)) {
+      const c = audioContext();
+      const p = fetch(`sounds/${name}.mp3`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.arrayBuffer();
+        })
+        // Forme à rappels : acceptée aussi par les anciennes versions de Safari.
+        .then((data) => new Promise((resolve, reject) => c.decodeAudioData(data, resolve, reject)));
+      p.catch(() => buffers.delete(name)); // nouvel essai la fois suivante
+      buffers.set(name, p);
+    }
+    return buffers.get(name);
+  }
+
+  async function tryBuffer(name, volume, loop, token) {
+    let buffer;
+    try {
+      buffer = await loadBuffer(name);
+    } catch (_) {
+      return null;
+    }
+    const c = audioContext();
+    if (token !== loopToken || !c || c.state !== 'running') return null;
+    const src = c.createBufferSource();
+    const gain = c.createGain();
+    src.buffer = buffer;
+    src.loop = loop;
+    gain.gain.value = volume;
+    src.connect(gain);
+    gain.connect(c.destination);
+    src.start();
+    sources.push(src, gain);
+    return src;
+  }
+
   // Débloque l'audio au premier geste de l'utilisateur (politique d'autoplay des navigateurs).
   function unlock() {
     const c = audioContext();
@@ -36,6 +81,8 @@
       s.buffer = b;
       s.connect(c.destination);
       s.start(0);
+      // Sons préchargés pour qu'une alerte sonne immédiatement.
+      if (WEB) ['information', 'eew', 'rouge', 'majeur', 'tsunami'].forEach((n) => loadBuffer(n).catch(() => {}));
     }
   }
 
@@ -150,6 +197,13 @@
     clearTimeout(synthTimer);
     audioEl = null;
     for (const a of [...liveAudio]) silence(a);
+    for (const n of sources) {
+      try {
+        if (n.stop) n.stop();
+        n.disconnect();
+      } catch (_) { /* déjà arrêté */ }
+    }
+    sources = [];
     for (const n of synthNodes) {
       try {
         if (n.stop) n.stop();
@@ -174,7 +228,24 @@
     const loop = Boolean(opts.loop);
     const maxMs = opts.untilStopped ? Infinity : (opts.maxSeconds || 120) * 1000;
 
-    for (const src of [`sounds/${soundFile({ ...alert, level })}.mp3`]) {
+    const name = soundFile({ ...alert, level });
+    if (WEB) {
+      // Au premier clic, le déblocage du son prend un instant : on l'attend un peu.
+      const c = audioContext();
+      if (c && c.state !== 'running') await Promise.race([c.resume().catch(() => {}), new Promise((r) => setTimeout(r, 300))]);
+      if (token !== loopToken) return;
+    }
+    // Web, son débloqué : Web Audio.
+    if (WEB && !isLocked()) {
+      const s = await tryBuffer(name, volume, loop, token);
+      if (token !== loopToken) return;
+      if (s) {
+        if (loop && Number.isFinite(maxMs)) synthTimer = setTimeout(stop, maxMs);
+        return;
+      }
+    }
+
+    for (const src of [`sounds/${name}.mp3`]) {
       const a = await tryFile(src, volume, loop, token);
       if (token !== loopToken) {
         if (a) silence(a);
