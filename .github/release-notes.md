@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.3.0
+- **Alertes tsunami** sur trois niveaux : **Avis de tsunami** (jaune), **Avertissement de tsunami** (rouge) et **Avertissement majeur de tsunami** (rose).
+- Sur la carte, les côtes touchées par un tsunami sont tracées de la couleur du niveau, comme dans JQuake.
+
 ## Nouveautés de la 1.2.7
 - Les alertes **tremblement de terre** jouent toujours le son EEW, quel que soit leur niveau.
 - Le son des alertes **majeures** se répète jusqu'à « J'ai compris », sans limite de durée.

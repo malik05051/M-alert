@@ -71,6 +71,27 @@
   };
 
   /** « Information », « Alerte rouge », « ALERTE MAJEURE »… */
+  // Tsunami : trois niveaux seulement, comme au Japon (avis, avertissement, avertissement majeur).
+  const TSUNAMI_LEVELS = {
+    2: { label: 'Avis de tsunami', name: 'Avis' },
+    4: { label: 'Avertissement de tsunami', name: 'Avertissement' },
+    5: { label: 'Avertissement majeur de tsunami', name: 'Avertissement majeur' },
+  };
+
+  function isTsunami(alert) {
+    return Boolean(alert) && alert.category === 'tsunami' && Boolean(TSUNAMI_LEVELS[alert.level]);
+  }
+
+  /** Intitulé complet du niveau d'une alerte : « Alerte rouge », « Avertissement de tsunami »… */
+  function alertLevelLabel(alert) {
+    return isTsunami(alert) ? TSUNAMI_LEVELS[alert.level].label : levelLabel(alert.level);
+  }
+
+  /** Nom court du niveau, pour les étiquettes : « Rouge », « Avertissement »… */
+  function alertLevelName(alert) {
+    return isTsunami(alert) ? TSUNAMI_LEVELS[alert.level].name : LEVELS[alert.level].name;
+  }
+
   function levelLabel(level) {
     if (level === 1) return 'Information';
     if (level === 5) return 'Alerte majeure';
@@ -205,7 +226,7 @@
 
   window.MAlert = {
     PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
-    categoryOf, alertKind, adviceFor, levelLabel,
+    categoryOf, alertKind, adviceFor, levelLabel, TSUNAMI_LEVELS, isTsunami, alertLevelLabel, alertLevelName,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,

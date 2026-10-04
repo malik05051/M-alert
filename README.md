@@ -14,6 +14,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Alerte plein écran** dans le style de JQuake / GlobalQuake : cadre clignotant à la couleur du niveau, titre, départements concernés, description et consignes.
 - **Son d'alerte** selon le niveau (information ; jaune et orange ; rouge ; majeure), avec un son dédié aux crues, inondations, tsunamis et vagues-submersion. Pour l'orange et le rouge, le son peut être répété jusqu'à « J'ai compris » ; le son majeur se répète toujours jusqu'à « J'ai compris ».
 - **Notification système** avec la description de l'alerte.
+- **Tsunami** : trois niveaux seulement, **Avis de tsunami** (jaune), **Avertissement de tsunami** (rouge) et **Avertissement majeur de tsunami** (rose), affichés comme dans JQuake par un trait de la couleur du niveau le long des côtes touchées.
 - **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité et les mêmes frontières noires que la vigilance.
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
@@ -102,11 +103,12 @@ web/                    Interface (aussi utilisable comme site web)
   js/sound.js           Son d'alerte
   sw.js                 Service worker (notifications push)
   data/departements.js  Contours des départements
+  data/cotes.js         Trait de côte par département (alertes tsunami), généré par tools/build-coasts.js
   sounds/               Vos sons d'alerte
 ```
 
 ## Crédits
 
 - Vigilance : © Météo-France (API « Données Publiques Vigilance »).
-- Contours des départements : IGN Admin Express via [france-geojson](https://github.com/gregoiredavid/france-geojson) (Licence Ouverte).
+- Contours des départements : IGN Admin Express via [france-geojson](https://github.com/gregoiredavid/france-geojson) (Licence Ouverte). Frontières terrestres retirées du trait de côte avec [Natural Earth](https://www.naturalearthdata.com) (domaine public).
 - Carte : [Leaflet](https://leafletjs.com) (BSD-2). Fond de carte détaillé : © Esri, HERE, Garmin, © OpenStreetMap (ArcGIS World Dark Gray Canvas).

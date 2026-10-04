@@ -121,6 +121,29 @@
     });
     ro.observe(document.getElementById(elementId));
 
+    // Alertes tsunami : trait épais de la couleur du niveau le long des côtes touchées (comme
+    // JQuake), au-dessus de tout le reste. Les départements sans côte ne sont pas tracés.
+    const tsunamiPane = map.createPane('tsunami');
+    tsunamiPane.style.zIndex = 470;
+    tsunamiPane.style.pointerEvents = 'none';
+    const tsunamiRenderer = L.svg({ pane: 'tsunami', padding: 0.5 });
+    const tsunamiGroup = L.layerGroup().addTo(map);
+    let tsunamiKey = '';
+
+    function renderTsunami(levels) {
+      const coasts = window.MALERT_COASTS || {};
+      const codes = Object.keys(levels).filter((c) => coasts[c]).sort((a, b) => levels[a] - levels[b]);
+      const key = codes.map((c) => `${c}:${levels[c]}`).join(',');
+      if (key === tsunamiKey) return;
+      tsunamiKey = key;
+      tsunamiGroup.clearLayers();
+      for (const c of codes) { // niveaux croissants : le plus grave est tracé par-dessus
+        tsunamiGroup.addLayer(L.polyline(coasts[c], {
+          renderer: tsunamiRenderer, interactive: false, color: LEVELS[levels[c]].color, weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round',
+        }));
+      }
+    }
+
     // Cache hors de France : un polygone de la couleur du fond couvrant le monde entier, percé
     // de chaque département. Placé au-dessus des noms de villes, il masque les autres pays.
     let mask = null;
@@ -156,12 +179,16 @@
 
       setAlerts(alerts) {
         const levels = {};
+        const tsunami = {};
         for (const a of alerts || []) {
           const codes = a.departments.includes('ALL') ? Object.keys(layers) : a.departments;
-          for (const c of codes) levels[c] = Math.max(levels[c] || 0, a.level);
+          // Tsunami : la côte est colorée, pas le département.
+          const target = a.category === 'tsunami' ? tsunami : levels;
+          for (const c of codes) target[c] = Math.max(target[c] || 0, a.level);
         }
         state.alertLevels = levels;
         refreshAll();
+        renderTsunami(tsunami);
       },
 
       setHighlighted(codes) {
