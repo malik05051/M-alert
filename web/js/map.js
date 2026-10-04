@@ -2,7 +2,8 @@
 (function () {
   'use strict';
 
-  const { VIGILANCE, LEVELS } = window.MAlert;
+  const M = window.MAlert;
+  const { VIGILANCE, LEVELS } = M;
   const FRANCE_BOUNDS = [[41.3, -5.2], [51.1, 9.6]];
 
   function create(elementId, options = {}) {
@@ -144,6 +145,49 @@
       }
     }
 
+    // Épicentres des tremblements de terre : croix de la couleur du niveau (comme JQuake).
+    const epicenterPane = map.createPane('epicenter');
+    epicenterPane.style.zIndex = 640; // au-dessus des contours, sous les info-bulles (650)
+    const epicenterGroup = L.layerGroup().addTo(map);
+    let draftMarker = null;
+
+    function crossIcon(level, draft) {
+      const color = LEVELS[level] ? LEVELS[level].color : '#ffffff';
+      const svg = `<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+        <path d="M6 6 26 26 M26 6 6 26" stroke="#0b1220" stroke-width="11" stroke-linecap="round"/>
+        <path d="M6 6 26 26 M26 6 6 26" stroke="#ffffff" stroke-width="7.5" stroke-linecap="round"/>
+        <path d="M6 6 26 26 M26 6 6 26" stroke="${color}" stroke-width="4" stroke-linecap="round"${draft ? ' stroke-dasharray="4 3"' : ''}/>
+      </svg>`;
+      return L.divIcon({ className: 'epicenter-icon', html: svg, iconSize: [32, 32], iconAnchor: [16, 16] });
+    }
+
+    function renderEpicenters(alerts) {
+      epicenterGroup.clearLayers();
+      for (const a of [...alerts].sort((x, y) => x.level - y.level)) {
+        epicenterGroup.addLayer(L.marker([a.epicenter.lat, a.epicenter.lon], {
+          icon: crossIcon(a.level), pane: 'epicenter', keyboard: false, title: `Épicentre — ${a.title}${M.quakeSummary(a) ? ` (${M.quakeSummary(a)})` : ''}`,
+        }));
+      }
+    }
+
+    // Point dans un polygone Leaflet (anneaux et multipolygones, règle pair-impair).
+    function containsPoint(latlngs, lat, lon) {
+      const rings = [];
+      (function collect(arr) {
+        if (arr.length && arr[0] instanceof L.LatLng) rings.push(arr);
+        else arr.forEach(collect);
+      }(latlngs));
+      let inside = false;
+      for (const ring of rings) {
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+          const a = ring[i];
+          const b = ring[j];
+          if ((a.lat > lat) !== (b.lat > lat) && lon < ((b.lng - a.lng) * (lat - a.lat)) / (b.lat - a.lat) + a.lng) inside = !inside;
+        }
+      }
+      return inside;
+    }
+
     // Cache hors de France : un polygone de la couleur du fond couvrant le monde entier, percé
     // de chaque département. Placé au-dessus des noms de villes, il masque les autres pays.
     let mask = null;
@@ -189,6 +233,18 @@
         state.alertLevels = levels;
         refreshAll();
         renderTsunami(tsunami);
+        renderEpicenters((alerts || []).filter((a) => a.epicenter));
+      },
+
+      /** Croix d'épicentre en cours de saisie (sender), ou null pour la retirer. */
+      setDraftEpicenter(epicenter, level) {
+        if (draftMarker) draftMarker.remove();
+        draftMarker = epicenter ? L.marker([epicenter.lat, epicenter.lon], { icon: crossIcon(level, true), pane: 'epicenter', interactive: false, keyboard: false }).addTo(map) : null;
+      },
+
+      /** Code du département contenant ce point, ou null (en mer, hors de France). */
+      departmentAt(lat, lon) {
+        return Object.keys(layers).find((c) => containsPoint(layers[c].getLatLngs(), lat, lon)) || null;
       },
 
       setHighlighted(codes) {
@@ -223,9 +279,14 @@
         refreshAll();
       },
 
-      focus(codes) {
+      /**
+       * Centre la carte sur des départements (et un épicentre éventuel).
+       * options.top : hauteur (px) cachée en haut de la carte, par exemple par le bandeau d'alerte.
+       */
+      focus(codes, { epicenter, top = 0 } = {}) {
+        const fly = { duration: 0.8, maxZoom: 8, paddingTopLeft: [20, top + 20], paddingBottomRight: [20, 20] };
         if (!codes || !codes.length || codes.includes('ALL')) {
-          map.flyToBounds(FRANCE_BOUNDS, { duration: 0.8 });
+          map.flyToBounds(FRANCE_BOUNDS, { ...fly, maxZoom: undefined });
           return;
         }
         let bounds = null;
@@ -233,7 +294,8 @@
           if (!layers[c]) continue;
           bounds = bounds ? bounds.extend(layers[c].getBounds()) : L.latLngBounds(layers[c].getBounds().getSouthWest(), layers[c].getBounds().getNorthEast());
         }
-        if (bounds) map.flyToBounds(bounds.pad(0.4), { duration: 0.8, maxZoom: 8 });
+        if (epicenter) bounds = bounds ? bounds.extend([epicenter.lat, epicenter.lon]) : L.latLngBounds([[epicenter.lat, epicenter.lon], [epicenter.lat, epicenter.lon]]);
+        if (bounds) map.flyToBounds(bounds.pad(0.25), fly);
       },
 
       resetView() {

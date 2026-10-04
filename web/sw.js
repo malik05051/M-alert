@@ -27,8 +27,8 @@ self.addEventListener('push', (event) => {
       body = `Départements : ${deps}`;
     } else {
       const prefix = (alert.test ? '[TEST] ' : '') + (data.type === 'update' ? 'Mise à jour · ' : '');
-      const levelText = alert.category === 'tsunami' && alert.levelName
-        ? alert.levelName // « Avis de tsunami », « Avertissement de tsunami »…
+      const levelText = (alert.category === 'tsunami' || alert.category === 'seisme') && alert.levelName
+        ? alert.levelName // « Avis de tsunami », « Alerte séisme élevé »…
         : alert.level === 1 ? 'Information' : alert.level === 5 ? 'ALERTE MAJEURE' : 'Alerte ' + LEVELS[alert.level];
       title = `${prefix}${levelText} — ${alert.title}`;
       body = `Départements : ${deps}\n${alert.description}`;

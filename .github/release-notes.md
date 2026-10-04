@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.4.0
+- **Tremblements de terre** : quatre niveaux (Faible, Moyen, Élevé, Majeur), magnitude, intensité maximale en **shindo** et **croix ✕ sur l'épicentre**.
+- L'alerte séisme s'affiche en **bandeau compact en haut** de l'écran : la carte reste visible avec l'épicentre et les départements concernés.
+
 ## Nouveautés de la 1.3.0
 - **Alertes tsunami** sur trois niveaux : **Avis de tsunami** (jaune), **Avertissement de tsunami** (rouge) et **Avertissement majeur de tsunami** (rose).
 - Sur la carte, les côtes touchées par un tsunami sont tracées de la couleur du niveau, comme dans JQuake.

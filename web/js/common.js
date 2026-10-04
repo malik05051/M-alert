@@ -71,25 +71,68 @@
   };
 
   /** « Information », « Alerte rouge », « ALERTE MAJEURE »… */
-  // Tsunami : trois niveaux seulement, comme au Japon (avis, avertissement, avertissement majeur).
-  const TSUNAMI_LEVELS = {
-    2: { label: 'Avis de tsunami', name: 'Avis' },
-    4: { label: 'Avertissement de tsunami', name: 'Avertissement' },
-    5: { label: 'Avertissement majeur de tsunami', name: 'Avertissement majeur' },
+  // Catégories à niveaux propres (les couleurs restent celles des niveaux 2 à 5).
+  const CATEGORY_LEVELS = {
+    // Tsunami : trois niveaux, comme au Japon.
+    tsunami: {
+      2: { label: 'Avis de tsunami', name: 'Avis' },
+      4: { label: 'Avertissement de tsunami', name: 'Avertissement' },
+      5: { label: 'Avertissement majeur de tsunami', name: 'Avertissement majeur' },
+    },
+    // Tremblement de terre : quatre niveaux.
+    seisme: {
+      2: { label: 'Alerte séisme faible', name: 'Faible' },
+      3: { label: 'Alerte séisme moyen', name: 'Moyen' },
+      4: { label: 'Alerte séisme élevé', name: 'Élevé' },
+      5: { label: 'Alerte séisme majeur', name: 'Majeur' },
+    },
   };
+  const TSUNAMI_LEVELS = CATEGORY_LEVELS.tsunami;
+
+  // Intensité sismique sur l'échelle japonaise (shindo), couleurs proches de JQuake.
+  const SHINDO = {
+    0: { color: '#6b7280', text: '#fff' },
+    1: { color: '#5e8fc4', text: '#fff' },
+    2: { color: '#2563eb', text: '#fff' },
+    3: { color: '#16a34a', text: '#fff' },
+    4: { color: '#facc15', text: '#1b1b1b' },
+    '5-': { color: '#f59e0b', text: '#1b1b1b' },
+    '5+': { color: '#ea580c', text: '#fff' },
+    '6-': { color: '#dc2626', text: '#fff' },
+    '6+': { color: '#991b1b', text: '#fff' },
+    7: { color: '#7e22ce', text: '#fff' },
+  };
+  const SHINDO_ORDER = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7'];
+
+  /** « M6.3 · intensité max 6- » pour un tremblement de terre (vide si rien n'est renseigné). */
+  function quakeSummary(alert) {
+    if (!alert || alert.category !== 'seisme') return '';
+    const parts = [];
+    if (typeof alert.magnitude === 'number') parts.push(`M${alert.magnitude.toFixed(1)}`);
+    if (alert.shindo) parts.push(`intensité max ${alert.shindo} (shindo)`);
+    return parts.join(' · ');
+  }
+
+  /** Niveaux propres à la catégorie de l'alerte (tsunami, séisme), ou null. */
+  function specialLevel(alert) {
+    const levels = alert && CATEGORY_LEVELS[alert.category];
+    return (levels && levels[alert.level]) || null;
+  }
 
   function isTsunami(alert) {
-    return Boolean(alert) && alert.category === 'tsunami' && Boolean(TSUNAMI_LEVELS[alert.level]);
+    return Boolean(alert) && alert.category === 'tsunami' && Boolean(specialLevel(alert));
   }
 
   /** Intitulé complet du niveau d'une alerte : « Alerte rouge », « Avertissement de tsunami »… */
   function alertLevelLabel(alert) {
-    return isTsunami(alert) ? TSUNAMI_LEVELS[alert.level].label : levelLabel(alert.level);
+    const special = specialLevel(alert);
+    return special ? special.label : levelLabel(alert.level);
   }
 
-  /** Nom court du niveau, pour les étiquettes : « Rouge », « Avertissement »… */
+  /** Nom court du niveau, pour les étiquettes : « Rouge », « Avertissement », « Faible »… */
   function alertLevelName(alert) {
-    return isTsunami(alert) ? TSUNAMI_LEVELS[alert.level].name : LEVELS[alert.level].name;
+    const special = specialLevel(alert);
+    return special ? special.name : LEVELS[alert.level].name;
   }
 
   function levelLabel(level) {
@@ -226,7 +269,7 @@
 
   window.MAlert = {
     PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
-    categoryOf, alertKind, adviceFor, levelLabel, TSUNAMI_LEVELS, isTsunami, alertLevelLabel, alertLevelName,
+    categoryOf, alertKind, adviceFor, levelLabel, SHINDO, SHINDO_ORDER, quakeSummary, CATEGORY_LEVELS, TSUNAMI_LEVELS, specialLevel, isTsunami, alertLevelLabel, alertLevelName,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,

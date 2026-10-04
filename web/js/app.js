@@ -186,7 +186,7 @@
     const ph = M.alertKind(a);
     return `<div class="alert-item ${isMine(a) ? 'mine' : ''}" data-alert="${a.id}" style="border-left-color:${lv.color}">
       <div class="t"><span class="tag" style="background:${lv.color};color:${lv.text}">${escapeHtml(M.alertLevelName(a))}</span>${a.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(a.title)}</div>
-      <div class="m">${ph.icon} ${escapeHtml(ph.name)} · ${escapeHtml(M.departmentsLabel(a.departments, 3))}</div>
+      <div class="m">${ph.icon} ${escapeHtml(ph.name)}${M.quakeSummary(a) ? ` · ${escapeHtml(M.quakeSummary(a))}` : ''} · ${escapeHtml(M.departmentsLabel(a.departments, 3))}</div>
       <div class="m">${M.relativeTime(a.createdAt)}${a.updatedAt ? ` · modifiée ${M.relativeTime(a.updatedAt)}` : ''} · jusqu'à ${M.formatTime(a.expiresAt)}</div>
     </div>`;
   }
@@ -233,7 +233,7 @@
     if (item) {
       const a = alerts.find((x) => x.id === item.dataset.alert);
       if (a) {
-        map.focus(a.departments);
+        focusAlert(a);
         showOverlay(a, { silent: true });
       }
       return;
@@ -292,12 +292,36 @@
     return isMine(alert);
   }
 
+  /** Lieu de l'épicentre : département, ou coordonnées s'il est en mer ou hors de France. */
+  function epicenterText(e) {
+    const code = map.departmentAt(e.lat, e.lon);
+    return code
+      ? `${M.departmentName(code)}`
+      : `${Math.abs(e.lat).toFixed(2)}° ${e.lat >= 0 ? 'N' : 'S'}, ${Math.abs(e.lon).toFixed(2)}° ${e.lon >= 0 ? 'E' : 'O'} (en mer ou hors de France)`;
+  }
+
+  /**
+   * Centre la carte sur une alerte (départements et épicentre). Pour un séisme, le bandeau
+   * d'alerte reste en haut : la carte est centrée dans la partie visible en dessous.
+   */
+  function focusAlert(alert) {
+    requestAnimationFrame(() => {
+      let top = 0;
+      if (!$('alertOverlay').classList.contains('hidden') && $('alertOverlay').classList.contains('compact')) {
+        const banner = $('alertOverlay').querySelector('.alert-banner').getBoundingClientRect();
+        top = Math.max(0, banner.bottom - $('map').getBoundingClientRect().top);
+      }
+      map.focus(alert.departments, { epicenter: alert.epicenter, top });
+    });
+  }
+
   function showOverlay(alert, { silent } = {}) {
     current = alert;
     const lv = LEVELS[alert.level];
     const ph = M.alertKind(alert);
     const ov = $('alertOverlay');
-    ov.className = `alert-overlay lvl-${alert.level}`;
+    // Tremblement de terre : bandeau compact en haut, la carte (épicentre, départements) reste visible.
+    ov.className = `alert-overlay lvl-${alert.level}${alert.category === 'seisme' ? ' compact' : ''}`;
     ov.style.setProperty('--c', lv.color);
     ov.style.setProperty('--ct', lv.text);
     $('ovLevel').textContent = M.alertLevelLabel(alert);
@@ -306,6 +330,16 @@
     $('ovTime').textContent = M.formatDateTime(alert.createdAt) + (alert.updatedAt ? ` · modifiée ${M.formatTime(alert.updatedAt)}` : '');
     $('ovTitle').textContent = alert.title;
     $('ovDeps').textContent = M.departmentsLabel(alert.departments, 8);
+    // Tremblement de terre : intensité (shindo), magnitude et épicentre.
+    const quake = [];
+    if (alert.category === 'seisme' && alert.shindo && M.SHINDO[alert.shindo]) {
+      const sh = M.SHINDO[alert.shindo];
+      quake.push(`<span class="shindo" style="background:${sh.color};color:${sh.text}" title="Intensité maximale (échelle shindo)">${escapeHtml(alert.shindo)}</span>`);
+    }
+    if (alert.category === 'seisme' && typeof alert.magnitude === 'number') quake.push(`<b>M${alert.magnitude.toFixed(1)}</b>`);
+    if (alert.epicenter) quake.push(`✕ Épicentre : ${escapeHtml(epicenterText(alert.epicenter))}`);
+    $('ovEpi').classList.toggle('hidden', !quake.length);
+    $('ovEpi').innerHTML = quake.join(' ');
     $('ovDesc').textContent = alert.description;
     const advice = M.adviceFor(alert);
     $('ovAdviceWrap').classList.toggle('hidden', !advice);
@@ -313,7 +347,9 @@
     $('ovValid').textContent = `Valable jusqu'au ${M.formatDateTime(alert.expiresAt)}`;
     $('ovQueue').textContent = queue.length ? `+${queue.length} autre(s) alerte(s)` : '';
     $('ovMute').classList.toggle('hidden', Boolean(silent) || !settings.sound);
-    $('ovAck').focus();
+    $('ovAck').focus({ preventScroll: true });
+    ov.querySelector('.alert-banner').scrollTop = 0;
+    ov.querySelector('.alert-body').classList.remove('expanded');
   }
 
   function acknowledge() {
@@ -329,6 +365,8 @@
   }
 
   $('ovAck').addEventListener('click', acknowledge);
+  // Bandeau compact (séisme) : un clic sur le texte l'affiche en entier.
+  document.querySelector('#alertOverlay .alert-body').addEventListener('click', (e) => e.currentTarget.classList.toggle('expanded'));
   $('ovMute').addEventListener('click', () => {
     window.MAlertSound.stop();
     $('ovMute').classList.add('hidden');
@@ -365,8 +403,8 @@
     if (!matchesMe(alert)) {
       markSeen(alert.id);
       const lv = LEVELS[alert.level];
-      toast(`${M.isTsunami(alert) ? M.alertLevelLabel(alert) : `Nouvelle alerte ${lv.name.toLowerCase()}`} : ${alert.title}`, M.departmentsLabel(alert.departments, 3), lv.color, () => {
-        map.focus(alert.departments);
+      toast(`${M.specialLevel(alert) ? M.alertLevelLabel(alert) : `Nouvelle alerte ${lv.name.toLowerCase()}`} : ${alert.title}`, M.departmentsLabel(alert.departments, 3), lv.color, () => {
+        focusAlert(alert);
         showOverlay(alert, { silent: true });
       });
       return;
@@ -375,7 +413,7 @@
     if (current) queue.push(alert);
     else showOverlay(alert);
     $('ovQueue').textContent = queue.length ? `+${queue.length} autre(s) alerte(s)` : '';
-    map.focus(alert.departments);
+    focusAlert(alert);
 
     if (settings.sound) {
       // Majeur.mp3 se répète toujours jusqu'à « J'ai compris », sans limite de durée.
@@ -424,7 +462,7 @@
     }
     if (concernedNow) {
       toast(`Alerte modifiée : ${alert.title}`, M.departmentsLabel(alert.departments, 3), lv.color, () => {
-        map.focus(alert.departments);
+        focusAlert(alert);
         showOverlay(alert, { silent: true });
       });
     } else if (concernedBefore) {
@@ -637,7 +675,7 @@
       if (e.data && e.data.type === 'open-alert') {
         const a = alerts.find((x) => x.id === e.data.id);
         if (a) {
-          map.focus(a.departments);
+          focusAlert(a);
           showOverlay(a, { silent: true });
         }
       }

@@ -12,3 +12,6 @@
 .leaflet-control-attribution { background: rgba(11, 18, 32, .7) !important; color: var(--muted) !important; }
 .leaflet-control-attribution a { color: var(--muted) !important; }
 .leaflet-interactive:focus { outline: none; }
+/* Croix d'épicentre (tremblements de terre) */
+.epicenter-icon { background: none; border: 0; }
+.epicenter-icon svg { display: block; filter: drop-shadow(0 0 3px rgba(0, 0, 0, .6)); }
