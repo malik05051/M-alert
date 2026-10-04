@@ -84,8 +84,8 @@ Les sons sont dans `web/sounds/` :
 | `information.mp3` | Information |
 | `eew.mp3` | Jaune et orange |
 | `rouge.mp3` | Rouge |
-| `majeur.mp3` | Majeure (rose) |
-| `tsunami.mp3` | **Crues**, **pluie-inondation**, **tsunami** et **vagues-submersion**, quel que soit le niveau |
+| `majeur.mp3` | Toutes les alertes **majeures** (rose), même tsunami ou crues |
+| `tsunami.mp3` | **Crues**, **pluie-inondation**, **tsunami** et **vagues-submersion** (sauf en majeure) |
 
 Pour changer un son, remplacez le fichier en gardant son nom (sans fichier, une sirène synthétique est jouée). Réglages > **Tester une alerte** permet de vérifier le son, l'affichage et les notifications.
 

@@ -4,8 +4,8 @@
  *   information.mp3  information (niveau 1)
  *   eew.mp3          jaune et orange
  *   rouge.mp3        rouge
- *   majeur.mp3       majeure
- *   tsunami.mp3      crues, pluie-inondation, tsunami et vagues-submersion (quel que soit le niveau)
+ *   majeur.mp3       toutes les alertes majeures (même tsunami, crues…)
+ *   tsunami.mp3      crues, pluie-inondation, tsunami et vagues-submersion (sauf en majeure)
  * Si un fichier manque ou ne peut pas être lu, une sirène synthétique est jouée.
  */
 (function () {
@@ -52,8 +52,8 @@
   function soundFile(alert) {
     const level = alert.level;
     const category = alert.category || 'meteo';
-    if (category === 'tsunami' || (category === 'meteo' && WATER_PHENOMENA.includes(Number(alert.phenomenon)))) return 'tsunami';
     if (level >= 5) return 'majeur';
+    if (category === 'tsunami' || (category === 'meteo' && WATER_PHENOMENA.includes(Number(alert.phenomenon)))) return 'tsunami';
     if (level === 4) return 'rouge';
     if (level >= 2) return 'eew';
     return 'information';

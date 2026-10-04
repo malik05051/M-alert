@@ -71,6 +71,20 @@
     return alerts.filter((a) => a.departments.includes('ALL') || a.departments.includes(code));
   }
 
+  /** Niveau d'alerte M-Alert le plus élevé pour un département, aujourd'hui (0) ou demain (1). */
+  function alertLevelFor(code, d) {
+    let from = Date.now();
+    if (d === 1) {
+      const p = periodData(1);
+      const t = new Date();
+      t.setHours(24, 0, 0, 0);
+      from = p ? new Date(p.begin).getTime() : t.getTime();
+    }
+    return alertsFor(code)
+      .filter((a) => wantsCategory(a) && new Date(a.expiresAt).getTime() > from)
+      .reduce((m, a) => Math.max(m, a.level), 0);
+  }
+
   function phenRows(vig) {
     if (!vig || !vig.phenomena || !vig.phenomena.length) return '';
     return vig.phenomena.map((p) => {
@@ -105,8 +119,14 @@
   function depCardHtml(code, { mine }) {
     const today = vigFor(code, 0);
     const tomorrow = vigFor(code, 1);
-    const pill = (vig, label) => {
+    // Niveau affiché : le plus élevé entre la vigilance Météo-France et les alertes M-Alert du jour.
+    const pill = (vig, label, d) => {
       const l = vig ? vig.level : 0;
+      const a = alertLevelFor(code, d);
+      if (a >= 2 && a > l) {
+        const lv = LEVELS[a];
+        return `<div class="vig-pill" style="background:${lv.color};color:${lv.text}"><small>${label} · M-Alert</small>${lv.name}</div>`;
+      }
       return `<div class="vig-pill lvl-${l}"><small>${label}</small>${VIGILANCE[l].name}</div>`;
     };
     const shown = day === 0 ? today : tomorrow;
@@ -126,7 +146,7 @@
     return `
       <h2>${mine ? 'Mon département' : 'Département sélectionné'}</h2>
       <p class="dep-title">${escapeHtml(M.departmentName(code))}</p>
-      <div class="vig-pills">${pill(today, 'Aujourd\'hui')}${pill(tomorrow, 'Demain')}</div>
+      <div class="vig-pills">${pill(today, 'Aujourd\'hui', 0)}${pill(tomorrow, 'Demain', 1)}</div>
       ${phen}${corrected}${alertHtml}`;
   }
 

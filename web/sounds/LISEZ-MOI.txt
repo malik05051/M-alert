@@ -4,8 +4,8 @@ Sons d'alerte M-Alert
   information.mp3  -> niveau « Information »
   eew.mp3          -> vigilance Jaune et Orange
   rouge.mp3        -> vigilance Rouge
-  majeur.mp3       -> niveau Majeure (rose)
-  tsunami.mp3      -> crues, pluie-inondation, tsunami et vagues-submersion (quel que soit le niveau)
+  majeur.mp3       -> toutes les alertes Majeures (rose), même tsunami ou crues
+  tsunami.mp3      -> crues, pluie-inondation, tsunami et vagues-submersion (sauf en Majeure)
 
 Pour changer un son, remplacez le fichier en gardant son nom.
 Si un fichier manque, M-Alert joue une sirène synthétique.
