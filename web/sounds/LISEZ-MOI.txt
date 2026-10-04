@@ -9,5 +9,5 @@ Sons d'alerte M-Alert
 
 Pour changer un son, remplacez le fichier en gardant son nom.
 Si un fichier manque, M-Alert joue une sirène synthétique.
-Pour l'orange, le rouge et la majeure, le son est répété jusqu'à « J'ai compris »
-(réglable dans les réglages).
+Pour l'orange et le rouge, le son est répété jusqu'à « J'ai compris » (réglable dans
+les réglages). majeur.mp3 se répète toujours jusqu'à « J'ai compris », sans limite.

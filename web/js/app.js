@@ -378,9 +378,12 @@
     map.focus(alert.departments);
 
     if (settings.sound) {
+      // Majeur.mp3 se répète toujours jusqu'à « J'ai compris », sans limite de durée.
+      const majeur = window.MAlertSound.soundFile(alert) === 'majeur';
       window.MAlertSound.play(alert, {
         volume: settings.volume,
-        loop: settings.repeat && alert.level >= 3,
+        loop: majeur || (settings.repeat && alert.level >= 3),
+        untilStopped: majeur,
       });
       setTimeout(() => {
         if (window.MAlertSound.isLocked()) $('soundHint').classList.remove('hidden');

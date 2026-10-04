@@ -151,7 +151,8 @@
   /**
    * Joue le son d'alerte.
    * @param {number|{level: number, category?: string, phenomenon?: number}} what niveau (1 à 5) ou alerte
-   * @param {{volume?: number, loop?: boolean, maxSeconds?: number}} opts
+   * @param {{volume?: number, loop?: boolean, maxSeconds?: number, untilStopped?: boolean}} opts
+   *   untilStopped : la répétition ne s'arrête qu'avec stop() (pas de limite de durée)
    */
   async function play(what, opts = {}) {
     stop();
@@ -160,7 +161,7 @@
     const token = loopToken;
     const volume = Math.max(0, Math.min(1, opts.volume == null ? 0.8 : opts.volume));
     const loop = Boolean(opts.loop);
-    const maxMs = (opts.maxSeconds || 120) * 1000;
+    const maxMs = opts.untilStopped ? Infinity : (opts.maxSeconds || 120) * 1000;
 
     for (const src of [`sounds/${soundFile({ ...alert, level })}.mp3`]) {
       const a = await tryFile(src, volume, loop);
@@ -170,7 +171,7 @@
       }
       if (a) {
         audioEl = a;
-        if (loop) synthTimer = setTimeout(stop, maxMs);
+        if (loop && Number.isFinite(maxMs)) synthTimer = setTimeout(stop, maxMs);
         return;
       }
     }

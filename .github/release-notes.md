@@ -2,6 +2,7 @@ Alertes météo en temps réel par département, avec la carte de vigilance Mét
 
 ## Nouveautés de la 1.2.7
 - Les alertes **tremblement de terre** jouent toujours le son EEW, quel que soit leur niveau.
+- Le son des alertes **majeures** se répète jusqu'à « J'ai compris », sans limite de durée.
 
 ## Nouveautés de la 1.2.6
 - Toutes les alertes **majeures** jouent le son majeur, même pour un tsunami ou des crues.
