@@ -352,7 +352,19 @@
     ov.querySelector('.alert-body').classList.remove('expanded');
   }
 
+  // Son d'une alerte. Majeur.mp3 se répète toujours jusqu'à « J'ai compris », sans limite de durée.
+  let pendingSound = null; // alerte qui n'a pas pu sonner (son bloqué par le navigateur)
+  function alertSound(alert) {
+    const majeur = window.MAlertSound.soundFile(alert) === 'majeur';
+    window.MAlertSound.play(alert, {
+      volume: settings.volume,
+      loop: majeur || (settings.repeat && alert.level >= 3),
+      untilStopped: majeur,
+    });
+  }
+
   function acknowledge() {
+    pendingSound = null;
     window.MAlertSound.stop();
     markSeen(current && current.id);
     current = null;
@@ -368,6 +380,7 @@
   // Bandeau compact (séisme) : un clic sur le texte l'affiche en entier.
   document.querySelector('#alertOverlay .alert-body').addEventListener('click', (e) => e.currentTarget.classList.toggle('expanded'));
   $('ovMute').addEventListener('click', () => {
+    pendingSound = null;
     window.MAlertSound.stop();
     $('ovMute').classList.add('hidden');
   });
@@ -416,15 +429,12 @@
     focusAlert(alert);
 
     if (settings.sound) {
-      // Majeur.mp3 se répète toujours jusqu'à « J'ai compris », sans limite de durée.
-      const majeur = window.MAlertSound.soundFile(alert) === 'majeur';
-      window.MAlertSound.play(alert, {
-        volume: settings.volume,
-        loop: majeur || (settings.repeat && alert.level >= 3),
-        untilStopped: majeur,
-      });
+      alertSound(alert);
       setTimeout(() => {
-        if (window.MAlertSound.isLocked()) $('soundHint').classList.remove('hidden');
+        if (window.MAlertSound.isLocked() && current && current.id === alert.id) {
+          pendingSound = alert; // rejoué au premier clic qui débloque le son
+          $('soundHint').classList.remove('hidden');
+        }
       }, 1000);
     }
     const lv = LEVELS[alert.level];
@@ -486,10 +496,14 @@
     }
   }
 
-  // Débloque le son au premier geste (exigence des navigateurs).
-  const unlockOnce = () => {
+  // Débloque le son au premier geste (exigence des navigateurs). Si une alerte n'a pas pu sonner,
+  // elle sonne à ce moment-là, sauf si le geste sert justement à la couper ou à l'acquitter.
+  const unlockOnce = (e) => {
     window.MAlertSound.unlock();
     $('soundHint').classList.add('hidden');
+    const silencing = e && e.target && e.target.closest && e.target.closest('#ovAck, #ovMute');
+    if (pendingSound && current && current.id === pendingSound.id && !silencing && settings.sound) alertSound(current);
+    pendingSound = null;
   };
   document.addEventListener('pointerdown', unlockOnce, { capture: true });
   document.addEventListener('keydown', unlockOnce, { capture: true });

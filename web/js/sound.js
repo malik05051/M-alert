@@ -60,13 +60,26 @@
     return 'information';
   }
 
-  function tryFile(src, volume, loop) {
+  // Tous les sons créés : stop() les coupe tous, même ceux que le navigateur démarrerait en retard
+  // (son d'abord bloqué puis relancé après un clic, chargement lent sur mobile…).
+  const liveAudio = new Set();
+
+  function silence(a) {
+    a.loop = false;
+    a.pause();
+    liveAudio.delete(a);
+  }
+
+  function tryFile(src, volume, loop, token) {
     return new Promise((resolve) => {
       const a = new Audio(src);
       a.volume = volume;
       a.loop = loop;
-      a.addEventListener('error', () => resolve(null), { once: true });
-      a.play().then(() => resolve(a)).catch(() => resolve(null));
+      liveAudio.add(a);
+      // Un son d'une alerte déjà coupée ne doit jamais se (re)mettre à jouer.
+      a.addEventListener('play', () => { if (token !== loopToken) silence(a); });
+      a.addEventListener('error', () => { silence(a); resolve(null); }, { once: true });
+      a.play().then(() => resolve(a)).catch(() => { silence(a); resolve(null); });
     });
   }
 
@@ -135,10 +148,8 @@
   function stop() {
     loopToken++;
     clearTimeout(synthTimer);
-    if (audioEl) {
-      audioEl.pause();
-      audioEl = null;
-    }
+    audioEl = null;
+    for (const a of [...liveAudio]) silence(a);
     for (const n of synthNodes) {
       try {
         if (n.stop) n.stop();
@@ -164,9 +175,9 @@
     const maxMs = opts.untilStopped ? Infinity : (opts.maxSeconds || 120) * 1000;
 
     for (const src of [`sounds/${soundFile({ ...alert, level })}.mp3`]) {
-      const a = await tryFile(src, volume, loop);
+      const a = await tryFile(src, volume, loop, token);
       if (token !== loopToken) {
-        if (a) a.pause();
+        if (a) silence(a);
         return;
       }
       if (a) {
@@ -179,6 +190,9 @@
     const started = Date.now();
     const again = () => {
       if (token !== loopToken) return;
+      // Son encore bloqué par le navigateur : ne pas empiler des sirènes qui partiraient toutes
+      // d'un coup au premier clic.
+      if (isLocked()) return;
       const d = synth(level, volume);
       if (loop && Date.now() - started < maxMs) synthTimer = setTimeout(again, d * 1000 + 600);
     };
