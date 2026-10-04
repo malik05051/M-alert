@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.4.1
+- **Son** : « Couper le son » et « J'ai compris » arrêtent désormais toujours le son, même s'il a démarré en retard.
+- Si le navigateur a bloqué le son d'une alerte, elle sonne au premier clic sur la page.
+
 ## Nouveautés de la 1.4.0
 - **Tremblements de terre** : quatre niveaux (Faible, Moyen, Élevé, Majeur), magnitude, intensité maximale en **shindo** et **croix ✕ sur l'épicentre**.
 - L'alerte séisme s'affiche en **bandeau compact en haut** de l'écran : la carte reste visible avec l'épicentre et les départements concernés.
