@@ -2,9 +2,9 @@ Sons d'alerte M-Alert
 =====================
 
   information.mp3  -> niveau « Information »
-  eew.mp3          -> vigilance Jaune et Orange
+  eew.mp3          -> tremblements de terre (tous niveaux, Majeure comprise), sinon Jaune et Orange
   rouge.mp3        -> vigilance Rouge
-  majeur.mp3       -> toutes les alertes Majeures (rose), même tsunami ou crues
+  majeur.mp3       -> alertes Majeures (rose), même tsunami ou crues, sauf tremblement de terre
   tsunami.mp3      -> crues, pluie-inondation, tsunami et vagues-submersion (sauf en Majeure)
 
 Pour changer un son, remplacez le fichier en gardant son nom.

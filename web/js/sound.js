@@ -2,9 +2,9 @@
  *
  * Sons (dossier web/sounds/) :
  *   information.mp3  information (niveau 1)
- *   eew.mp3          jaune et orange
+ *   eew.mp3          tremblements de terre (tous niveaux, majeure comprise), sinon jaune et orange
  *   rouge.mp3        rouge
- *   majeur.mp3       toutes les alertes majeures (même tsunami, crues…)
+ *   majeur.mp3       alertes majeures (même tsunami, crues…), sauf tremblement de terre
  *   tsunami.mp3      crues, pluie-inondation, tsunami et vagues-submersion (sauf en majeure)
  * Si un fichier manque ou ne peut pas être lu, une sirène synthétique est jouée.
  */
@@ -52,6 +52,7 @@
   function soundFile(alert) {
     const level = alert.level;
     const category = alert.category || 'meteo';
+    if (category === 'seisme') return 'eew'; // alerte séisme (Earthquake Early Warning), quel que soit le niveau
     if (level >= 5) return 'majeur';
     if (category === 'tsunami' || (category === 'meteo' && WATER_PHENOMENA.includes(Number(alert.phenomenon)))) return 'tsunami';
     if (level === 4) return 'rouge';
