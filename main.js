@@ -141,7 +141,10 @@ app.whenReady().then(() => {
     { label: 'Ouvrir M-Alert', click: showWindow },
     { label: 'Réglages', click: () => { showWindow(); win.webContents.send('open-settings'); } },
     { label: 'Tester une alerte', click: () => { showWindow(); win.webContents.send('test-alert'); } },
-    { label: 'Rechercher des mises à jour', click: () => { showWindow(); win.webContents.send('open-settings'); updater.check(); } },
+    // Paquet Arch : les mises à jour passent par pacman, l'entrée n'a pas lieu d'être.
+    ...(updater.mode === 'pacman' ? [] : [
+      { label: 'Rechercher des mises à jour', click: () => { showWindow(); win.webContents.send('open-settings'); updater.check(); } },
+    ]),
     { type: 'separator' },
     { label: 'Quitter M-Alert', click: quit },
   ], showWindow);

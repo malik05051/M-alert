@@ -1,5 +1,10 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.2.6
+- Toutes les alertes **majeures** jouent le son majeur, même pour un tsunami ou des crues.
+- **Mon département** : les cases Aujourd'hui et Demain tiennent compte des alertes M-Alert, en plus de la vigilance Météo-France.
+- Arch Linux : l'entrée « Rechercher des mises à jour » disparaît du menu de l'icône (pacman s'en charge).
+
 ## Nouveautés de la 1.2.5
 - Nouvelle catégorie 🏭 **Accident industriel** (à la place d'Accident), avec les consignes officielles de mise à l'abri.
 - Nouveau son pour les **crues**, la **pluie-inondation**, les **tsunamis** et les **vagues-submersion**.
