@@ -104,11 +104,12 @@
   };
   const SHINDO_ORDER = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7'];
 
-  /** « M6.3 · intensité max 6- » pour un tremblement de terre (vide si rien n'est renseigné). */
+  /** « M6.3 · profondeur 10 km · intensité max 6- » pour un tremblement de terre (vide si rien n'est renseigné). */
   function quakeSummary(alert) {
     if (!alert || alert.category !== 'seisme') return '';
     const parts = [];
     if (typeof alert.magnitude === 'number') parts.push(`M${alert.magnitude.toFixed(1)}`);
+    if (typeof alert.depth === 'number') parts.push(`profondeur ${alert.depth} km`);
     if (alert.shindo) parts.push(`intensité max ${alert.shindo} (shindo)`);
     return parts.join(' · ');
   }

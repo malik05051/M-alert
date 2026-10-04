@@ -337,6 +337,7 @@
       quake.push(`<span class="shindo" style="background:${sh.color};color:${sh.text}" title="Intensité maximale (échelle shindo)">${escapeHtml(alert.shindo)}</span>`);
     }
     if (alert.category === 'seisme' && typeof alert.magnitude === 'number') quake.push(`<b>M${alert.magnitude.toFixed(1)}</b>`);
+    if (alert.category === 'seisme' && typeof alert.depth === 'number') quake.push(`<span>Profondeur : <b>${alert.depth} km</b></span>`);
     if (alert.epicenter) quake.push(`✕ Épicentre : ${escapeHtml(epicenterText(alert.epicenter))}`);
     $('ovEpi').classList.toggle('hidden', !quake.length);
     $('ovEpi').innerHTML = quake.join(' ');
