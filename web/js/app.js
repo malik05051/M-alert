@@ -51,24 +51,45 @@
   // Alertes qui ont sonné pour moi, avec leur niveau : à l'ouverture, une alerte déjà vue sonne
   // de nouveau si mon département y a été ajouté (ou si son niveau a monté) pendant que
   // l'application était fermée. Première fois : les alertes déjà vues comptent comme signalées.
+  // Pour chaque alerte : niveau et départements suivis pour lesquels elle a déjà sonné.
   let alerted = M.storage.get('malert.alerted', null);
   if (!alerted) {
     alerted = {};
     for (const id of seen) alerted[id] = 5;
   }
+  /** { level, mine } ; mine = null pour les anciennes entrées (aucun département « nouveau »). */
+  function alertedRecord(id) {
+    const r = alerted[id];
+    if (r == null) return { level: 0, mine: [] };
+    return typeof r === 'number' ? { level: r, mine: null } : r;
+  }
+
+  /** Mes départements (principal et suivis) visés par l'alerte. */
+  function myIncluded(alert) {
+    const mine = myDepartments();
+    return alert.departments.includes('ALL') ? mine : mine.filter((d) => alert.departments.includes(d));
+  }
+
   function markAlerted(alert) {
-    alerted[alert.id] = Math.max(alerted[alert.id] || 0, alert.level);
+    const r = alertedRecord(alert.id);
+    alerted[alert.id] = {
+      level: Math.max(r.level, alert.level),
+      mine: r.mine === null ? null : [...new Set([...r.mine, ...myIncluded(alert)])],
+    };
     const keep = Object.keys(alerted).slice(-300);
     alerted = Object.fromEntries(keep.map((id) => [id, alerted[id]]));
     M.storage.set('malert.alerted', alerted);
   }
 
-  /** Alertes à signaler à l'ouverture : jamais vues, ou qui me concernent désormais davantage. */
+  /** Alertes à signaler à l'ouverture : jamais vues, ou étendues à un de mes départements / plus graves. */
   function missedAlerts(list) {
     return list.filter((a) => {
       if (!seen.has(a.id)) return true;
-      if (!matchesMe(a) || (alerted[a.id] || 0) >= a.level) return false;
-      seen.delete(a.id); // mon département a été ajouté, ou le niveau a monté
+      if (!matchesMe(a)) return false;
+      const r = alertedRecord(a.id);
+      const newDepartment = r.mine !== null && myIncluded(a).some((d) => !r.mine.includes(d));
+      if (r.level >= a.level && !newDepartment) return false;
+      seen.delete(a.id);
       a.__updated = true;
       return true;
     });
@@ -483,8 +504,11 @@
     const before = previous && previous.departments ? { ...alert, ...previous } : null;
     const concernedBefore = Boolean(before && matchesMe(before));
     const concernedNow = M.isActive(alert) && matchesMe(alert);
+    // Un de mes départements ajouté à l'alerte (même si elle me concernait déjà par un autre
+    // département suivi, ou via « toute la France »).
+    const addedMine = before ? myIncluded(alert).filter((d) => !myIncluded(before).includes(d)) : [];
     const lv = LEVELS[alert.level];
-    if (concernedNow && (!concernedBefore || alert.level > before.level)) {
+    if (concernedNow && (!concernedBefore || alert.level > before.level || addedMine.length)) {
       // Mon département vient d'être ajouté ou le niveau monte : nouvelle alerte sonore.
       if (current && current.id === alert.id) {
         window.MAlertSound.stop();
