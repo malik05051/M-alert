@@ -17,7 +17,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Tremblement de terre** : quatre niveaux, **Faible**, **Moyen**, **Élevé** et **Majeur**, avec la magnitude, la profondeur, l'intensité maximale (échelle japonaise **shindo**, de 0 à 7) et une **croix ✕ sur l'épicentre**. L'alerte s'affiche en **bandeau compact en haut** de l'écran pour laisser voir l'épicentre et les départements concernés.
 - **Tsunami** : trois niveaux seulement, **Avis de tsunami** (jaune), **Avertissement de tsunami** (rouge) et **Avertissement majeur de tsunami** (rose), affichés comme dans JQuake par un trait de la couleur du niveau le long des côtes touchées.
 - **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité et les mêmes frontières noires que la vigilance.
-- Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage.
+- Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage (seulement celles-là : une alerte déjà reçue ne revient pas). Si votre département est **ajouté à une alerte existante** ou si son niveau monte, vous êtes alerté, en direct ou à l'ouverture.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
 - Une alerte **modifiée** depuis M-Alert-sender est mise à jour en direct ; elle sonne de nouveau si son niveau monte ou si votre département vient d'être ajouté.

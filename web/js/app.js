@@ -48,6 +48,32 @@
     M.storage.set('malert.seen', [...seen].slice(-300));
   }
 
+  // Alertes qui ont sonné pour moi, avec leur niveau : à l'ouverture, une alerte déjà vue sonne
+  // de nouveau si mon département y a été ajouté (ou si son niveau a monté) pendant que
+  // l'application était fermée. Première fois : les alertes déjà vues comptent comme signalées.
+  let alerted = M.storage.get('malert.alerted', null);
+  if (!alerted) {
+    alerted = {};
+    for (const id of seen) alerted[id] = 5;
+  }
+  function markAlerted(alert) {
+    alerted[alert.id] = Math.max(alerted[alert.id] || 0, alert.level);
+    const keep = Object.keys(alerted).slice(-300);
+    alerted = Object.fromEntries(keep.map((id) => [id, alerted[id]]));
+    M.storage.set('malert.alerted', alerted);
+  }
+
+  /** Alertes à signaler à l'ouverture : jamais vues, ou qui me concernent désormais davantage. */
+  function missedAlerts(list) {
+    return list.filter((a) => {
+      if (!seen.has(a.id)) return true;
+      if (!matchesMe(a) || (alerted[a.id] || 0) >= a.level) return false;
+      seen.delete(a.id); // mon département a été ajouté, ou le niveau a monté
+      a.__updated = true;
+      return true;
+    });
+  }
+
   // ---------- Carte ----------
 
   const map = window.MAlertMap.create('map', {
@@ -449,6 +475,7 @@
     // L'identifiant est mémorisé à l'acquittement ; on le note aussi ici pour ne pas
     // rejouer l'alerte si l'application est rechargée avant.
     markSeen(alert.id);
+    markAlerted(alert);
   }
 
   // Alerte modifiée depuis M-Alert-sender.
@@ -579,8 +606,13 @@
         alerts = (msg.alerts || []).filter(M.isActive);
         renderAll();
         checkVigilanceChange(old, vigilance);
-        // Alertes envoyées pendant que l'application était hors ligne.
-        alerts.filter((a) => !seen.has(a.id)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).forEach(trigger);
+        // Alertes envoyées (ou étendues à mon département) pendant que l'application était fermée
+        // ou hors ligne. Celles reçues application ouverte sont déjà marquées vues.
+        missedAlerts(alerts).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).forEach((a) => {
+          const updated = Boolean(a.__updated);
+          delete a.__updated;
+          trigger(a, { updated });
+        });
         break;
       }
       case 'alert':
