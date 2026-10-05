@@ -1,5 +1,10 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.4.3
+- À l'ouverture, M-Alert affiche les alertes émises pendant qu'il était fermé, et seulement celles-là.
+- Si votre département est **ajouté à une alerte existante** (ou si son niveau monte) pendant que M-Alert est fermé, l'alerte sonne à l'ouverture.
+- Version web : les vrais sons d'alerte sont joués sous Firefox et Safari (au lieu d'une sirène générique).
+
 ## Nouveautés de la 1.4.2
 - Tremblements de terre : la **profondeur** du séisme est affichée quand elle est connue.
 
