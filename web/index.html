@@ -42,6 +42,7 @@
       <section class="card hidden" id="selectedCard"></section>
       <section class="card">
         <h2>Alertes en cours <span class="count" id="alertCount">0</span></h2>
+        <select id="alertFilter" class="alert-filter" aria-label="Filtrer les alertes"></select>
         <div id="alertList" class="alert-list"></div>
       </section>
       <section class="card legend">
@@ -124,6 +125,9 @@
         <legend>Alerte</legend>
         <div class="field">Catégories d'alertes reçues
           <div class="cat-checks" id="setCategories"></div>
+        </div>
+        <div class="field">Phénomènes météo reçus
+          <div class="cat-checks" id="setPhenomena"></div>
         </div>
         <label class="field">Niveau minimum pour sonner et notifier
           <select id="setMinLevel">

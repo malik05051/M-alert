@@ -15,6 +15,7 @@
     all: false,
     minLevel: 1,
     categoriesOff: [], // catégories d'alertes désactivées (les nouvelles restent actives)
+    phenomenaOff: [], // phénomènes météo désactivés (ex. 6 = canicule)
     sound: true,
     volume: 0.8,
     repeat: true,
@@ -238,12 +239,32 @@
     </div>`;
   }
 
+  // Filtre de la liste « Alertes en cours » : catégorie ou phénomène météo.
+  let alertFilter = M.storage.get('malert.alertFilter', '');
+  $('alertFilter').innerHTML = '<option value="">Toutes les alertes</option>'
+    + `<optgroup label="Catégorie">${Object.entries(M.CATEGORIES).map(([id, c]) => `<option value="cat:${id}">${c.icon} ${escapeHtml(c.name)}</option>`).join('')}</optgroup>`
+    + `<optgroup label="Phénomène météo">${Object.entries(PHENOMENA).map(([id, p]) => `<option value="phen:${id}">${p.icon} ${escapeHtml(p.name)}</option>`).join('')}</optgroup>`;
+  $('alertFilter').value = alertFilter;
+  if ($('alertFilter').value !== alertFilter) alertFilter = '';
+  $('alertFilter').addEventListener('change', (e) => {
+    alertFilter = e.target.value;
+    M.storage.set('malert.alertFilter', alertFilter);
+    renderAlerts();
+  });
+
+  function passesFilter(a) {
+    if (!alertFilter) return true;
+    const [kind, value] = alertFilter.split(':');
+    if (kind === 'cat') return M.categoryOf(a) === value;
+    return M.categoryOf(a) === 'meteo' && String(Number(a.phenomenon) || 0) === value;
+  }
+
   function renderAlerts() {
-    const sorted = [...alerts].sort((a, b) => (isMine(b) - isMine(a)) || (b.level - a.level) || b.createdAt.localeCompare(a.createdAt));
-    $('alertCount').textContent = alerts.length;
+    const sorted = [...alerts].filter(passesFilter).sort((a, b) => (isMine(b) - isMine(a)) || (b.level - a.level) || b.createdAt.localeCompare(a.createdAt));
+    $('alertCount').textContent = alertFilter ? `${sorted.length}/${alerts.length}` : alerts.length;
     $('alertList').innerHTML = sorted.length
       ? sorted.map(alertItemHtml).join('')
-      : '<div class="empty">Aucune alerte en cours ✅</div>';
+      : `<div class="empty">${alertFilter && alerts.length ? 'Aucune alerte de ce type en cours.' : 'Aucune alerte en cours ✅'}</div>`;
   }
 
   function renderVigInfo() {
@@ -329,7 +350,10 @@
   // ---------- Alerte plein écran, son et notification ----------
 
   function wantsCategory(alert) {
-    return !settings.categoriesOff.includes(M.categoryOf(alert));
+    const cat = M.categoryOf(alert);
+    if (settings.categoriesOff.includes(cat)) return false;
+    // Phénomène météo désactivé dans les réglages.
+    return !(cat === 'meteo' && (settings.phenomenaOff || []).includes(Number(alert.phenomenon) || 0));
   }
 
   function matchesMe(alert) {
@@ -731,6 +755,7 @@
         body: JSON.stringify({
           subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel,
           excludedCategories: settings.categoriesOff,
+          excludedPhenomena: settings.phenomenaOff || [],
         }),
       });
       if (!res.ok) throw new Error(`serveur HTTP ${res.status}`);
@@ -760,6 +785,8 @@
 
   $('setCategories').innerHTML = Object.entries(M.CATEGORIES).map(([id, c]) =>
     `<label class="check"><input type="checkbox" value="${id}"> ${c.icon} ${escapeHtml(c.name)}</label>`).join('');
+  $('setPhenomena').innerHTML = Object.entries(PHENOMENA).map(([id, p]) =>
+    `<label class="check"><input type="checkbox" value="${id}"> ${p.icon} ${escapeHtml(p.name)}</label>`).join('');
 
   function fillDepartmentInputs() {
     $('setDep').innerHTML = '<option value="">— Choisir —</option>' +
@@ -806,6 +833,7 @@
     $('setAll').checked = settings.all;
     $('setMinLevel').value = String(settings.minLevel);
     $('setCategories').querySelectorAll('input').forEach((i) => { i.checked = !settings.categoriesOff.includes(i.value); });
+    $('setPhenomena').querySelectorAll('input').forEach((i) => { i.checked = !(settings.phenomenaOff || []).includes(Number(i.value)); });
     $('setSound').checked = settings.sound;
     $('setVolume').value = String(settings.volume);
     $('setRepeat').checked = settings.repeat;
@@ -850,6 +878,7 @@
       all: $('setAll').checked,
       minLevel: Number($('setMinLevel').value),
       categoriesOff: [...$('setCategories').querySelectorAll('input:not(:checked)')].map((i) => i.value),
+      phenomenaOff: [...$('setPhenomena').querySelectorAll('input:not(:checked)')].map((i) => Number(i.value)),
       sound: $('setSound').checked,
       volume: Number($('setVolume').value),
       repeat: $('setRepeat').checked,

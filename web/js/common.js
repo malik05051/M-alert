@@ -79,6 +79,12 @@
       4: { label: 'Avertissement de tsunami', name: 'Avertissement' },
       5: { label: 'Avertissement majeur de tsunami', name: 'Avertissement majeur' },
     },
+    // Blocus / manifestation : trois niveaux, comme le tsunami.
+    blocus: {
+      2: { label: 'Avis de blocus / manifestation', name: 'Avis' },
+      4: { label: 'Avertissement blocus / manifestation', name: 'Avertissement' },
+      5: { label: 'Avertissement majeur blocus / manifestation', name: 'Avertissement majeur' },
+    },
     // Tremblement de terre : quatre niveaux.
     seisme: {
       2: { label: 'Alerte séisme faible', name: 'Faible' },
