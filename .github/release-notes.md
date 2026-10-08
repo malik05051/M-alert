@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.4.4
+- Les alertes **vagues-submersion** sont tracées sur les côtes touchées, comme les tsunamis.
+
 ## Nouveautés de la 1.4.3
 - À l'ouverture, M-Alert affiche les alertes émises pendant qu'il était fermé, et seulement celles-là.
 - Si votre département est **ajouté à une alerte existante** (ou si son niveau monte), l'alerte sonne, en direct ou à l'ouverture si M-Alert était fermé, même avec « Recevoir les alertes de toute la France » coché.
