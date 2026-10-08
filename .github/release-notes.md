@@ -4,6 +4,7 @@ Alertes météo en temps réel par département, avec la carte de vigilance Mét
 - **Filtre par phénomène** : dans ⚙ Réglages, choisissez les phénomènes météo pour lesquels vous voulez être alerté (orages, canicule…) ; la liste « Alertes en cours » se filtre aussi par catégorie ou par phénomène.
 - **Blocus / manifestation** : trois niveaux, **Avis** (jaune), **Avertissement** (rouge) et **Avertissement majeur** (rose).
 - Les alertes peuvent désormais être **planifiées** à l'avance par M-Alert.
+- **Nouveau logo** : le M blanc sur triangle rouge.
 
 ## Nouveautés de la 1.4.4
 - Les alertes **vagues-submersion** sont tracées sur les côtes touchées, comme les tsunamis.
