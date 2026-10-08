@@ -122,7 +122,7 @@
     });
     ro.observe(document.getElementById(elementId));
 
-    // Alertes tsunami : trait épais de la couleur du niveau le long des côtes touchées (comme
+    // Alertes tsunami et vagues-submersion : trait épais de la couleur du niveau le long des côtes touchées (comme
     // JQuake), au-dessus de tout le reste. Les départements sans côte ne sont pas tracés.
     const tsunamiPane = map.createPane('tsunami');
     tsunamiPane.style.zIndex = 470;
@@ -226,8 +226,9 @@
         const tsunami = {};
         for (const a of alerts || []) {
           const codes = a.departments.includes('ALL') ? Object.keys(layers) : a.departments;
-          // Tsunami : la côte est colorée, pas le département.
-          const target = a.category === 'tsunami' ? tsunami : levels;
+          // Tsunami et vagues-submersion : la côte est colorée, pas le département.
+          const coastal = a.category === 'tsunami' || ((a.category || 'meteo') === 'meteo' && Number(a.phenomenon) === 9);
+          const target = coastal ? tsunami : levels;
           for (const c of codes) target[c] = Math.max(target[c] || 0, a.level);
         }
         state.alertLevels = levels;
