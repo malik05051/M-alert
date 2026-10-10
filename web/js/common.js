@@ -13,6 +13,7 @@
     7: { name: 'Grand froid', icon: '🥶' },
     8: { name: 'Avalanches', icon: '🏔️' },
     9: { name: 'Vagues-submersion', icon: '🌊' },
+    10: { name: 'Tornade', icon: '🌪️' }, // M-Alert seulement (pas une vigilance Météo-France)
   };
 
   // Catégories d'alertes M-Alert. Le phénomène ne concerne que la catégorie « meteo ».
@@ -136,14 +137,31 @@
     return Boolean(alert) && alert.category === 'tsunami' && Boolean(specialLevel(alert));
   }
 
+  // Tornade : échelle EF (Fujita améliorée) de 0 à 5 ; couleur d'alerte EF0 jaune, EF1 orange,
+  // EF2 rouge, EF3 à EF5 majeure.
+  const TORNADO_PHENOMENON = 10;
+  const EF_LEVEL = [2, 3, 4, 5, 5, 5];
+  function isTornado(alert) {
+    return Boolean(alert) && (alert.category || 'meteo') === 'meteo' && Number(alert.phenomenon) === TORNADO_PHENOMENON
+      && Number.isInteger(alert.ef) && alert.ef >= 0 && alert.ef <= 5;
+  }
+
+  /** « EF3 · vent attendu 250 km/h » pour une tornade (vide sinon). */
+  function tornadoSummary(alert) {
+    if (!isTornado(alert)) return '';
+    return `EF${alert.ef}${typeof alert.windKmh === 'number' ? ` · vent attendu ${alert.windKmh} km/h` : ''}`;
+  }
+
   /** Intitulé complet du niveau d'une alerte : « Alerte rouge », « Avertissement de tsunami »… */
   function alertLevelLabel(alert) {
+    if (isTornado(alert)) return `Tornade EF${alert.ef}`;
     const special = specialLevel(alert);
     return special ? special.label : levelLabel(alert.level);
   }
 
   /** Nom court du niveau, pour les étiquettes : « Rouge », « Avertissement », « Faible »… */
   function alertLevelName(alert) {
+    if (isTornado(alert)) return `EF${alert.ef}`;
     const special = specialLevel(alert);
     return special ? special.name : LEVELS[alert.level].name;
   }
@@ -282,7 +300,7 @@
 
   window.MAlert = {
     PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
-    categoryOf, alertKind, adviceFor, levelLabel, untilText, SHINDO, SHINDO_ORDER, quakeSummary, CATEGORY_LEVELS, TSUNAMI_LEVELS, specialLevel, isTsunami, alertLevelLabel, alertLevelName,
+    categoryOf, alertKind, adviceFor, levelLabel, untilText, TORNADO_PHENOMENON, EF_LEVEL, isTornado, tornadoSummary, SHINDO, SHINDO_ORDER, quakeSummary, CATEGORY_LEVELS, TSUNAMI_LEVELS, specialLevel, isTsunami, alertLevelLabel, alertLevelName,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,
