@@ -3,6 +3,7 @@ Alertes météo en temps réel par département, avec la carte de vigilance Mét
 ## Nouveautés de la 1.6.1
 - **Notifications push** : les notifications de M-Alert arrivent désormais aussi sur les téléphones et navigateurs où M-Alert est fermé, même si la version web n'a pas encore été rouverte depuis la mise à jour.
 - La version web vérifie ses mises à jour au démarrage puis toutes les heures.
+- Les notifications s'affichent en **bandeau en haut de l'écran**, comme les séismes, avec le son « information » ; sur ordinateur, la fenêtre de M-Alert revient au premier plan. Une alerte reste prioritaire sur une notification.
 
 ## Nouveautés de la 1.6.0
 - **Notifications de M-Alert** 🔔 : des messages d'information (sans alerte) s'affichent dans l'application et en notification, et restent consultables 24 h dans la nouvelle section « Notifications ». Reçus aussi à l'ouverture si M-Alert était fermé. Désactivables dans ⚙ Réglages.
