@@ -68,8 +68,8 @@
   /** { level, mine } ; mine = null pour les anciennes entrées (aucun département « nouveau »). */
   function alertedRecord(id) {
     const r = alerted[id];
-    if (r == null) return { level: 0, mine: [] };
-    return typeof r === 'number' ? { level: r, mine: null } : r;
+    if (r == null) return { level: 0, mine: [], ring: 0 };
+    return typeof r === 'number' ? { level: r, mine: null, ring: 0 } : { ring: 0, ...r };
   }
 
   /** Mes départements (principal et suivis) visés par l'alerte. */
@@ -83,6 +83,7 @@
     alerted[alert.id] = {
       level: Math.max(r.level, alert.level),
       mine: r.mine === null ? null : [...new Set([...r.mine, ...myIncluded(alert)])],
+      ring: Math.max(r.ring, alert.ring || 0), // relances déjà reçues
     };
     const keep = Object.keys(alerted).slice(-300);
     alerted = Object.fromEntries(keep.map((id) => [id, alerted[id]]));
@@ -93,9 +94,15 @@
   function missedAlerts(list) {
     return list.filter((a) => {
       if (!seen.has(a.id)) return true;
-      if (a.silent) return false; // alerte silencieuse : jamais d'alerte sonore
       if (!matchesMe(a)) return false;
       const r = alertedRecord(a.id);
+      // Relancée par M-Alert pendant que l'application était fermée : elle sonne de nouveau.
+      if ((a.ring || 0) > r.ring) {
+        seen.delete(a.id);
+        a.__ring = true;
+        return true;
+      }
+      if (a.silent) return false; // alerte silencieuse : jamais d'alerte sonore
       const newDepartment = r.mine !== null && myIncluded(a).some((d) => !r.mine.includes(d));
       if (r.level >= a.level && !newDepartment) return false;
       seen.delete(a.id);
@@ -589,8 +596,10 @@
     }
   }
 
-  function trigger(alert, { updated } = {}) {
+  function trigger(alert, { updated, ring } = {}) {
     if (seen.has(alert.id)) return;
+    // Une relance (demandée par M-Alert) sonne même si l'alerte est silencieuse.
+    if (ring) alert = { ...alert, silent: false };
     // Alerte silencieuse : visible sur la carte et dans la liste, sans son, fenêtre ni notification.
     // Pas de markAlerted : si elle cesse d'être silencieuse pendant que l'application est fermée,
     // elle sonnera à l'ouverture.
@@ -629,7 +638,7 @@
       }, 1000);
     }
     const lv = LEVELS[alert.level];
-    const prefix = (alert.test ? '[TEST] ' : '') + (updated ? 'MISE À JOUR · ' : '');
+    const prefix = (alert.test ? '[TEST] ' : '') + (ring ? 'RAPPEL · ' : updated ? 'MISE À JOUR · ' : '');
     systemNotification(
       `${prefix}${M.alertKind(alert).icon} ${M.alertLevelLabel(alert)} — ${alert.title}`,
       `${M.departmentsLabel(alert.departments, 3)}\n${alert.description}`,
@@ -783,8 +792,10 @@
         // ou hors ligne. Celles reçues application ouverte sont déjà marquées vues.
         missedAlerts(alerts).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).forEach((a) => {
           const updated = Boolean(a.__updated);
+          const ring = Boolean(a.__ring);
           delete a.__updated;
-          trigger(a, { updated });
+          delete a.__ring;
+          trigger(a, { updated, ring });
         });
         // Notifications manquées : après les alertes, qui passent devant.
         if (msg.notices) setNotices(msg.notices);
@@ -803,6 +814,23 @@
         if (qi >= 0) queue[qi] = a;
         renderAll();
         onAlertUpdated(a, msg.previous);
+        break;
+      }
+      case 'ring': {
+        // Alerte relancée par M-Alert : son, fenêtre et notification rejoués pour les personnes concernées.
+        const a = msg.alert;
+        alerts = alerts.filter((x) => x.id !== a.id);
+        if (M.isActive(a)) alerts.push(a);
+        const qi = queue.findIndex((x) => x.id === a.id);
+        if (qi >= 0) queue.splice(qi, 1);
+        renderAll();
+        if (!M.isActive(a) || !matchesMe(a)) break;
+        if (current && current.id === a.id) {
+          window.MAlertSound.stop();
+          current = null;
+        }
+        seen.delete(a.id);
+        trigger(a, { ring: true });
         break;
       }
       case 'cancel':

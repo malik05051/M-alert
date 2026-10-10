@@ -22,6 +22,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - Certaines alertes peuvent être **silencieuses** : affichées sur la carte et dans la liste, sans son ni notification.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
+- Une alerte peut être **relancée** par M-Alert : le son, la fenêtre et la notification (« RAPPEL ») sont rejoués, en direct ou à l'ouverture si l'application était fermée.
 - Une alerte **modifiée** depuis M-Alert-sender est mise à jour en direct ; elle sonne de nouveau si son niveau monte ou si votre département vient d'être ajouté.
 - La vigilance peut être **corrigée ou saisie à la main** depuis M-Alert-sender, que l'API Météo-France fonctionne ou soit en panne : badges « Vigilance corrigée » / « Vigilance manuelle » et mention « ✎ corrigé par M-Alert » sur les départements concernés.
 - **Catégories d'alertes** : 🌦️ Météo, 🏚️ Tremblement de terre, 🌊 Tsunami, 🌫️ Pollution, 🏭 Accident industriel, 📢 Grève, 🚧 Blocus / manifestation, chacune avec ses consignes. Chaque catégorie peut être désactivée dans les réglages.

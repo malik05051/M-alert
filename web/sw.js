@@ -32,8 +32,8 @@ self.addEventListener('push', (event) => {
       });
       return;
     }
-    // Alerte silencieuse : aucune notification (le serveur n'en envoie pas, par sécurité).
-    if (alert.silent) return;
+    // Alerte silencieuse : aucune notification (le serveur n'en envoie pas, par sécurité), sauf relance.
+    if (alert.silent && data.type !== 'ring') return;
 
     const deps = alert.departments.includes('ALL') ? 'Toute la France' : alert.departments.join(', ');
     let title;
@@ -42,7 +42,7 @@ self.addEventListener('push', (event) => {
       title = `Alerte levée — ${alert.title}`;
       body = `Départements : ${deps}`;
     } else {
-      const prefix = (alert.test ? '[TEST] ' : '') + (data.type === 'update' ? 'Mise à jour · ' : '');
+      const prefix = (alert.test ? '[TEST] ' : '') + (data.type === 'ring' ? 'Rappel · ' : data.type === 'update' ? 'Mise à jour · ' : '');
       const levelText = (alert.category === 'tsunami' || alert.category === 'seisme' || ((alert.category || 'meteo') === 'meteo' && Number(alert.phenomenon) === 10)) && alert.levelName
         ? alert.levelName // « Avis de tsunami », « Alerte séisme élevé »…
         : alert.level === 1 ? 'Information' : alert.level === 5 ? 'ALERTE MAJEURE' : 'Alerte ' + LEVELS[alert.level];
