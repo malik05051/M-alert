@@ -2,7 +2,9 @@
  *
  * Sons (dossier web/sounds/) :
  *   information.mp3  information (niveau 1)
- *   eew.mp3          tremblements de terre (tous niveaux, majeure comprise), sinon jaune et orange
+ *   eew.mp3          jaune et orange
+ *   seisme-eew.mp3, seisme-eew2.mp3, seisme-leger.mp3
+ *                    tremblements de terre (tous niveaux, majeure comprise), au choix de M-Alert
  *   rouge.mp3        rouge
  *   majeur.mp3       alertes majeures (même tsunami, crues…), sauf tremblement de terre
  *   tsunami.mp3      crues, pluie-inondation, tsunami et vagues-submersion (sauf en majeure)
@@ -82,7 +84,7 @@
       s.connect(c.destination);
       s.start(0);
       // Sons préchargés pour qu'une alerte sonne immédiatement.
-      if (WEB) ['information', 'eew', 'rouge', 'majeur', 'tsunami'].forEach((n) => loadBuffer(n).catch(() => {}));
+      if (WEB) ['information', 'eew', 'rouge', 'majeur', 'tsunami', ...Object.values(QUAKE_SOUNDS)].forEach((n) => loadBuffer(n).catch(() => {}));
     }
   }
 
@@ -95,11 +97,15 @@
   // Phénomènes météo liés à l'eau : pluie-inondation (2), crues (4), vagues-submersion (9).
   const WATER_PHENOMENA = [2, 4, 9];
 
+  // Sons des tremblements de terre (EEW, Earthquake Early Warning), choisis par M-Alert pour chaque alerte.
+  const QUAKE_SOUNDS = { eew: 'seisme-eew', eew2: 'seisme-eew2', leger: 'seisme-leger' };
+
   /** Fichier son d'une alerte (ou d'un simple niveau). */
   function soundFile(alert) {
     const level = alert.level;
     const category = alert.category || 'meteo';
-    if (category === 'seisme') return 'eew'; // alerte séisme (Earthquake Early Warning), quel que soit le niveau
+    // Séisme : son choisi (EEW par défaut), quel que soit le niveau.
+    if (category === 'seisme') return QUAKE_SOUNDS[alert.quakeSound] || QUAKE_SOUNDS.eew;
     if (level >= 5) return 'majeur';
     if (category === 'tsunami' || (category === 'meteo' && WATER_PHENOMENA.includes(Number(alert.phenomenon)))) return 'tsunami';
     if (level === 4) return 'rouge';
