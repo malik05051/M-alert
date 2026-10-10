@@ -407,7 +407,9 @@
       showNoticeBanner(n);
     }
     if (settings.sound) window.MAlertSound.play({ level: 1, category: 'meteo', phenomenon: 0 }, { volume: settings.volume, loop: false });
-    systemNotification(`${n.test ? '[TEST] ' : ''}🔔 ${n.title}`, n.body || M.departmentsLabel(n.departments, 3), { tag: `notice-${n.id}` });
+    // Persistante (comme les alertes orange et rouge) : une notification qui expire seule peut ne
+    // jamais s'afficher (KDE Plasma notamment, quand la fenêtre de M-Alert passe au premier plan).
+    systemNotification(`${n.test ? '[TEST] ' : ''}🔔 ${n.title}`, n.body || M.departmentsLabel(n.departments, 3), { tag: `notice-${n.id}`, urgent: true });
     // Application de bureau : la fenêtre revient au premier plan, comme pour une alerte.
     if (native) native.alert({ level: 1, front: settings.front });
   }
