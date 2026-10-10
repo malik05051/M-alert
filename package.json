@@ -1,7 +1,7 @@
 {
   "name": "m-alert",
   "productName": "M-Alert",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Réception des alertes météo M-Alert avec carte de vigilance Météo-France",
   "author": "malik05051",
   "homepage": "https://github.com/malik05051/M-alert",

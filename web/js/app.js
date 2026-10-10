@@ -22,6 +22,7 @@
     vigNotify: true,
     front: true,
     push: false,
+    notices: true, // notifications de M-Alert (messages hors alerte)
     tiles: false,
     serverUrl: (window.MALERT_CONFIG && window.MALERT_CONFIG.serverUrl) || 'http://localhost:8080',
   };
@@ -43,6 +44,11 @@
   const seen = new Set(M.storage.get('malert.seen', []));
   const queue = [];         // alertes en attente d'affichage plein écran
   let current = null;       // alerte affichée en plein écran
+  let notices = [];         // notifications des dernières 24 h
+  // Notifications déjà affichées. Premier lancement (null) : celles déjà envoyées ne s'affichent pas.
+  const noticeSeenStored = M.storage.get('malert.noticeSeen', null);
+  const noticeSeen = new Set(noticeSeenStored || []);
+  let noticeFirstRun = noticeSeenStored === null;
 
   function markSeen(id) {
     seen.add(id);
@@ -57,6 +63,7 @@
   if (!alerted) {
     alerted = {};
     for (const id of seen) alerted[id] = 5;
+    M.storage.set('malert.alerted', alerted); // une seule fois : les alertes vues ensuite en silence n'y figurent pas
   }
   /** { level, mine } ; mine = null pour les anciennes entrées (aucun département « nouveau »). */
   function alertedRecord(id) {
@@ -86,6 +93,7 @@
   function missedAlerts(list) {
     return list.filter((a) => {
       if (!seen.has(a.id)) return true;
+      if (a.silent) return false; // alerte silencieuse : jamais d'alerte sonore
       if (!matchesMe(a)) return false;
       const r = alertedRecord(a.id);
       const newDepartment = r.mine !== null && myIncluded(a).some((d) => !r.mine.includes(d));
@@ -334,9 +342,9 @@
 
   // ---------- Toasts ----------
 
-  function toast(title, body, color, onClick) {
+  function toast(title, body, color, onClick, { duration = 9000, className = '' } = {}) {
     const el = document.createElement('div');
-    el.className = 'toast';
+    el.className = `toast ${className}`.trim();
     if (color) el.style.borderLeftColor = color;
     el.innerHTML = `<strong>${escapeHtml(title)}</strong>${body ? `<span class="muted small">${escapeHtml(body)}</span>` : ''}`;
     el.addEventListener('click', () => {
@@ -344,7 +352,62 @@
       if (onClick) onClick();
     });
     $('toasts').appendChild(el);
-    setTimeout(() => el.remove(), 9000);
+    setTimeout(() => el.remove(), duration);
+  }
+
+  // ---------- Notifications de M-Alert (messages sans alerte) ----------
+
+  const NOTICE_COLOR = '#60a5fa';
+  const NOTICE_TTL = 24 * 3600 * 1000;
+
+  function noticeForMe(n) {
+    if (settings.notices === false) return false;
+    if (settings.all || n.departments.includes('ALL')) return true;
+    return n.departments.some((d) => myDepartments().includes(d));
+  }
+
+  function markNoticeSeen(id) {
+    noticeSeen.add(id);
+    M.storage.set('malert.noticeSeen', [...noticeSeen].slice(-300));
+  }
+
+  function noticeItemHtml(n) {
+    return `<div class="alert-item notice-item" style="border-left-color:${NOTICE_COLOR}">
+      <div class="t">${n.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(n.title)}</div>
+      ${n.body ? `<div class="desc">${escapeHtml(n.body)}</div>` : ''}
+      <div class="m">${M.relativeTime(n.createdAt)} · ${escapeHtml(M.departmentsLabel(n.departments, 3))}</div>
+    </div>`;
+  }
+
+  function renderNotices() {
+    const now = Date.now();
+    notices = notices.filter((n) => new Date(n.createdAt).getTime() + NOTICE_TTL > now);
+    const mine = notices.filter(noticeForMe).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    $('noticesCard').classList.toggle('hidden', !mine.length);
+    $('noticeCount').textContent = mine.length;
+    $('noticeList').innerHTML = mine.map(noticeItemHtml).join('');
+  }
+
+  /** Affiche une notification reçue (une seule fois) : message dans l'application et notification système. */
+  function showNotice(n) {
+    if (noticeSeen.has(n.id)) return;
+    markNoticeSeen(n.id);
+    if (!noticeForMe(n)) return;
+    toast(`🔔 ${n.title}`, n.body, NOTICE_COLOR, null, { duration: 30000, className: 'notice' });
+    systemNotification(`${n.test ? '[TEST] ' : ''}🔔 ${n.title}`, n.body || M.departmentsLabel(n.departments, 3), { tag: `notice-${n.id}` });
+  }
+
+  /** Notifications reçues à la connexion : celles envoyées pendant que l'application était fermée s'affichent. */
+  function setNotices(list) {
+    notices = list.slice();
+    if (noticeFirstRun) {
+      // Premier lancement : pas de rattrapage des notifications déjà envoyées.
+      noticeFirstRun = false;
+      for (const n of notices) markNoticeSeen(n.id);
+      M.storage.set('malert.noticeSeen', [...noticeSeen]);
+    }
+    renderNotices();
+    notices.filter((n) => !noticeSeen.has(n.id)).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).forEach(showNotice);
   }
 
   // ---------- Alerte plein écran, son et notification ----------
@@ -485,6 +548,13 @@
 
   function trigger(alert, { updated } = {}) {
     if (seen.has(alert.id)) return;
+    // Alerte silencieuse : visible sur la carte et dans la liste, sans son, fenêtre ni notification.
+    // Pas de markAlerted : si elle cesse d'être silencieuse pendant que l'application est fermée,
+    // elle sonnera à l'ouverture.
+    if (alert.silent) {
+      markSeen(alert.id);
+      return;
+    }
     // Catégorie désactivée dans les réglages : aucune alerte sonore ni message.
     if (!wantsCategory(alert)) {
       markSeen(alert.id);
@@ -531,7 +601,13 @@
   // Alerte modifiée depuis M-Alert-sender.
   function onAlertUpdated(alert, previous) {
     const before = previous && previous.departments ? { ...alert, ...previous } : null;
-    const concernedBefore = Boolean(before && matchesMe(before));
+    if (alert.silent) {
+      // Modification silencieuse : la carte et la liste suffisent.
+      if (current && current.id === alert.id) showOverlay(alert, { silent: true });
+      return;
+    }
+    // Une alerte qui était silencieuse sonne si elle ne l'est plus.
+    const concernedBefore = Boolean(before && !before.silent && matchesMe(before));
     const concernedNow = M.isActive(alert) && matchesMe(alert);
     // Un de mes départements ajouté à l'alerte (même si elle me concernait déjà par un autre
     // département suivi, ou via « toute la France »).
@@ -657,6 +733,7 @@
         const old = vigilance;
         vigilance = msg.vigilance;
         alerts = (msg.alerts || []).filter(M.isActive);
+        if (msg.notices) setNotices(msg.notices);
         renderAll();
         checkVigilanceChange(old, vigilance);
         // Alertes envoyées (ou étendues à mon département) pendant que l'application était fermée
@@ -692,11 +769,20 @@
         if (idx >= 0) queue.splice(idx, 1);
         if (current && current.id === a.id) acknowledge();
         renderAll();
-        if (had && isMine(a)) {
+        if (had && isMine(a) && !a.silent) {
           toast(msg.type === 'cancel' ? `Alerte levée : ${a.title}` : `Fin de l'alerte : ${a.title}`, M.departmentsLabel(a.departments, 3), '#34d399');
         }
         break;
       }
+      case 'notice':
+        if (!notices.some((n) => n.id === msg.notice.id)) notices.push(msg.notice);
+        renderNotices();
+        showNotice(msg.notice);
+        break;
+      case 'notice-delete':
+        notices = notices.filter((n) => n.id !== msg.notice.id);
+        renderNotices();
+        break;
       case 'vigilance': {
         const old = vigilance;
         vigilance = msg.vigilance;
@@ -715,6 +801,7 @@
     alerts = alerts.filter(M.isActive);
     if (alerts.length !== before) renderAll();
     else if (++tick % 6 === 0) renderAlerts(); // met à jour les « il y a x min » toutes les 30 s
+    if (tick % 6 === 0) renderNotices();
   }, 5000); // 5 s : les alertes à durée personnalisée peuvent être très courtes
 
   // ---------- Notifications push (navigateur / téléphone) ----------
@@ -761,6 +848,7 @@
           subscription: sub.toJSON(), departments: myDepartments(), all: settings.all, minLevel: settings.minLevel,
           excludedCategories: settings.categoriesOff,
           excludedPhenomena: settings.phenomenaOff || [],
+          notices: settings.notices !== false,
         }),
       });
       if (!res.ok) throw new Error(`serveur HTTP ${res.status}`);
@@ -845,6 +933,7 @@
     $('setVigNotify').checked = settings.vigNotify;
     $('setFront').checked = settings.front;
     $('setPush').checked = settings.push;
+    $('setNotices').checked = settings.notices !== false;
     $('setTiles').checked = settings.tiles;
     $('setServer').value = settings.serverUrl;
     document.querySelectorAll('.native-only').forEach((el) => el.classList.toggle('hidden', !native));
@@ -890,6 +979,7 @@
       vigNotify: $('setVigNotify').checked,
       front: $('setFront').checked,
       push: $('setPush').checked,
+      notices: $('setNotices').checked,
       tiles: $('setTiles').checked,
       serverUrl: M.normalizeServerUrl($('setServer').value) || DEFAULTS.serverUrl,
     };
@@ -937,6 +1027,7 @@
   function onSettingsChanged(serverChanged) {
     map.setTiles(settings.tiles);
     renderAll();
+    renderNotices();
     if (serverChanged) connect();
     else if (ws && ws.readyState === WebSocket.OPEN) ws.send(subscribeMessage());
     syncPush();

@@ -13,11 +13,27 @@ self.addEventListener('push', (event) => {
       data = event.data ? event.data.json() : {};
     } catch (_) { /* contenu illisible */ }
     const alert = data.alert;
-    if (!alert) return;
+    const notice = data.notice;
+    if (!alert && !notice) return;
 
     // Si M-Alert est ouvert et visible, l'alerte est déjà affichée via la connexion temps réel.
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (windows.some((c) => c.visibilityState === 'visible')) return;
+
+    // Notification de M-Alert : simple message, sans alerte.
+    if (notice) {
+      const deps = notice.departments.includes('ALL') ? 'Toute la France' : notice.departments.join(', ');
+      await self.registration.showNotification(`${notice.test ? '[TEST] ' : ''}🔔 ${notice.title}`, {
+        body: notice.body || deps,
+        tag: `notice-${notice.id}`,
+        icon: 'icons/icon-192.png',
+        badge: 'icons/icon-192.png',
+        data: { notice: notice.id },
+      });
+      return;
+    }
+    // Alerte silencieuse : aucune notification (le serveur n'en envoie pas, par sécurité).
+    if (alert.silent) return;
 
     const deps = alert.departments.includes('ALL') ? 'Toute la France' : alert.departments.join(', ');
     let title;

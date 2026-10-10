@@ -18,6 +18,8 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Tsunami** : trois niveaux seulement, **Avis de tsunami** (jaune), **Avertissement de tsunami** (rouge) et **Avertissement majeur de tsunami** (rose), affichés comme dans JQuake par un trait de la couleur du niveau le long des côtes touchées. Les alertes **vagues-submersion** sont affichées de la même façon, sur les côtes.
 - **Départements en alerte** remplis de la couleur du niveau, avec la même luminosité et les mêmes frontières noires que la vigilance.
 - Les alertes envoyées pendant que l'application était fermée s'affichent au démarrage (seulement celles-là : une alerte déjà reçue ne revient pas). Si votre département est **ajouté à une alerte existante** ou si son niveau monte, vous êtes alerté, en direct ou à l'ouverture.
+- **Notifications de M-Alert** : messages d'information (sans alerte) affichés dans l'application, en notification et dans la section « 🔔 Notifications » pendant 24 h ; reçus aussi à l'ouverture si l'application était fermée. Désactivables dans les réglages.
+- Certaines alertes peuvent être **silencieuses** : affichées sur la carte et dans la liste, sans son ni notification.
 - Prévenu aussi quand la vigilance de vos départements passe en jaune, orange ou rouge (désactivable).
 - **Fonctionne en arrière-plan** : fermer la fenêtre laisse M-Alert actif dans la zone de notification ; il reste connecté, sonne et réaffiche la fenêtre dès qu'une alerte arrive. Reconnexion immédiate après une mise en veille.
 - Une alerte **modifiée** depuis M-Alert-sender est mise à jour en direct ; elle sonne de nouveau si son niveau monte ou si votre département vient d'être ajouté.
@@ -26,7 +28,7 @@ Pour recevoir les alertes que j'envoie (dont la source vient des centres météo
 - **Tornade** : niveau sur l'échelle **EF0 à EF5** (EF0 jaune, EF1 orange, EF2 rouge, EF3 à EF5 majeure) et vent attendu.
 - **Blocus / manifestation** : trois niveaux, **Avis** (jaune), **Avertissement** (rouge) et **Avertissement majeur** (rose).
 - **Filtre par phénomène** : liste « Alertes en cours » filtrable par catégorie ou par phénomène météo.
-- **Réglages** : département principal, autres départements suivis, catégories d'alertes et phénomènes météo reçus, alertes de toute la France, niveau minimum, son et volume, notifications, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
+- **Réglages** : département principal, autres départements suivis, catégories d'alertes et phénomènes météo reçus, alertes de toute la France, niveau minimum, son et volume, notifications, notifications de M-Alert, notifications push, fond de carte détaillé, lancement au démarrage, adresse du serveur.
 
 ## Utilisation
 

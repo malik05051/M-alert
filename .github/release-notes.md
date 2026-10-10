@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.6.0
+- **Notifications de M-Alert** 🔔 : des messages d'information (sans alerte) s'affichent dans l'application et en notification, et restent consultables 24 h dans la nouvelle section « Notifications ». Reçus aussi à l'ouverture si M-Alert était fermé. Désactivables dans ⚙ Réglages.
+- **Alertes silencieuses** : certaines alertes peuvent être affichées sur la carte et dans la liste sans son, fenêtre d'alerte ni notification.
+
 ## Nouveautés de la 1.5.2
 - Nouveau phénomène 🌪️ **Tornade** : niveau sur l'échelle **EF0 à EF5** (EF0 jaune, EF1 orange, EF2 rouge, EF3 à EF5 majeure) et **vent attendu** quand il est connu.
 

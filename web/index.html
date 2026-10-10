@@ -40,6 +40,10 @@
     <aside class="panel">
       <section class="card" id="myDepCard"></section>
       <section class="card hidden" id="selectedCard"></section>
+      <section class="card hidden" id="noticesCard">
+        <h2>🔔 Notifications <span class="count" id="noticeCount">0</span></h2>
+        <div id="noticeList" class="alert-list"></div>
+      </section>
       <section class="card">
         <h2>Alertes en cours <span class="count" id="alertCount">0</span></h2>
         <select id="alertFilter" class="alert-filter" aria-label="Filtrer les alertes"></select>
@@ -151,6 +155,7 @@
           <span id="notifState" class="muted small"></span>
           <button type="button" class="btn small" id="btnNotif">Autoriser les notifications</button>
         </div>
+        <label class="check"><input type="checkbox" id="setNotices"> Recevoir les notifications de M-Alert (messages d'information, sans alerte)</label>
         <label class="check push-only hidden"><input type="checkbox" id="setPush"> Recevoir les alertes même quand l'application est fermée (push)</label>
         <p class="muted small push-only hidden" id="pushState"></p>
       </fieldset>
