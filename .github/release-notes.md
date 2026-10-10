@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.5.1
+- Alertes **sans date de fin** : elles restent en vigueur jusqu'à leur levée par M-Alert (« jusqu'à levée de l'alerte »).
+
 ## Nouveautés de la 1.5.0
 - **Filtre par phénomène** : dans ⚙ Réglages, choisissez les phénomènes météo pour lesquels vous voulez être alerté (orages, canicule…) ; la liste « Alertes en cours » se filtre aussi par catégorie ou par phénomène.
 - **Blocus / manifestation** : trois niveaux, **Avis** (jaune), **Avertissement** (rouge) et **Avertissement majeur** (rose).

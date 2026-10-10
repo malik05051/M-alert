@@ -120,6 +120,12 @@
     return parts.join(' · ');
   }
 
+  /** Fin d'une alerte : « jusqu'à 18:30 » (court), « jusqu'au jeu. 08/10 18:30 », ou « jusqu'à levée ». */
+  function untilText(alert, { short } = {}) {
+    if (alert.noEnd) return 'jusqu\'à levée de l\'alerte';
+    return short ? `jusqu'à ${formatTime(alert.expiresAt)}` : `jusqu'au ${formatDateTime(alert.expiresAt)}`;
+  }
+
   /** Niveaux propres à la catégorie de l'alerte (tsunami, séisme), ou null. */
   function specialLevel(alert) {
     const levels = alert && CATEGORY_LEVELS[alert.category];
@@ -276,7 +282,7 @@
 
   window.MAlert = {
     PHENOMENA, CATEGORIES, CATEGORY_ADVICE, VIGILANCE, LEVELS, ADVICE, vigilanceBadge,
-    categoryOf, alertKind, adviceFor, levelLabel, SHINDO, SHINDO_ORDER, quakeSummary, CATEGORY_LEVELS, TSUNAMI_LEVELS, specialLevel, isTsunami, alertLevelLabel, alertLevelName,
+    categoryOf, alertKind, adviceFor, levelLabel, untilText, SHINDO, SHINDO_ORDER, quakeSummary, CATEGORY_LEVELS, TSUNAMI_LEVELS, specialLevel, isTsunami, alertLevelLabel, alertLevelName,
     escapeHtml, formatDateTime, formatTime, relativeTime,
     departmentList, departmentName, departmentsLabel, isActive,
     storage, toWsUrl, normalizeServerUrl,

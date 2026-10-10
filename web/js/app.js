@@ -235,7 +235,7 @@
     return `<div class="alert-item ${isMine(a) ? 'mine' : ''}" data-alert="${a.id}" style="border-left-color:${lv.color}">
       <div class="t"><span class="tag" style="background:${lv.color};color:${lv.text}">${escapeHtml(M.alertLevelName(a))}</span>${a.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(a.title)}</div>
       <div class="m">${ph.icon} ${escapeHtml(ph.name)}${M.quakeSummary(a) ? ` · ${escapeHtml(M.quakeSummary(a))}` : ''} · ${escapeHtml(M.departmentsLabel(a.departments, 3))}</div>
-      <div class="m">${M.relativeTime(a.createdAt)}${a.updatedAt ? ` · modifiée ${M.relativeTime(a.updatedAt)}` : ''} · jusqu'à ${M.formatTime(a.expiresAt)}</div>
+      <div class="m">${M.relativeTime(a.createdAt)}${a.updatedAt ? ` · modifiée ${M.relativeTime(a.updatedAt)}` : ''} · ${M.untilText(a, { short: true })}</div>
     </div>`;
   }
 
@@ -416,7 +416,7 @@
     const advice = M.adviceFor(alert);
     $('ovAdviceWrap').classList.toggle('hidden', !advice);
     $('ovAdvice').textContent = advice || '';
-    $('ovValid').textContent = `Valable jusqu'au ${M.formatDateTime(alert.expiresAt)}`;
+    $('ovValid').textContent = alert.noEnd ? 'Sans date de fin : en vigueur jusqu\'à la levée de l\'alerte' : `Valable ${M.untilText(alert)}`;
     $('ovQueue').textContent = queue.length ? `+${queue.length} autre(s) alerte(s)` : '';
     $('ovMute').classList.toggle('hidden', Boolean(silent) || !settings.sound);
     $('ovAck').focus({ preventScroll: true });
