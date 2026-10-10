@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.6.4
+- Les notifications de M-Alert peuvent être envoyées sans choisir de département : elles s'adressent alors à toute la France.
+
 ## Nouveautés de la 1.6.3
 - **Rappel d'alerte** : M-Alert peut relancer une alerte en cours. Le son, la fenêtre d'alerte et la notification (« RAPPEL ») sont rejoués pour les personnes concernées, en direct ou à l'ouverture si l'application était fermée.
 - **Tremblements de terre** : trois sons d'alerte possibles (EEW, EEW 2, EEW léger), choisis par M-Alert pour chaque séisme.
