@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.5.2
+- Nouveau phénomène 🌪️ **Tornade** : niveau sur l'échelle **EF0 à EF5** (EF0 jaune, EF1 orange, EF2 rouge, EF3 à EF5 majeure) et **vent attendu** quand il est connu.
+
 ## Nouveautés de la 1.5.1
 - Alertes **sans date de fin** : elles restent en vigueur jusqu'à leur levée par M-Alert (« jusqu'à levée de l'alerte »).
 
