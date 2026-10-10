@@ -103,9 +103,9 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: v
 .alert-item .m { font-size: 12.5px; color: var(--muted); }
 .alert-item.mine { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
 /* Notifications de M-Alert (messages sans alerte) */
-.notice-item { cursor: default; }
 .notice-item .desc { font-size: 13px; margin: 3px 0; white-space: pre-wrap; word-break: break-word; }
 .toast.notice { border-left-width: 5px; }
+.notice-item { cursor: pointer; }
 .toast.notice span { white-space: pre-wrap; word-break: break-word; }
 .tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 5px; margin-right: 6px; vertical-align: 1px; }
 .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 10px 0; }
@@ -182,6 +182,12 @@ html.app-hidden *, html.app-hidden *::before, html.app-hidden *::after { animati
 .alert-overlay.compact .alert-body:not(.expanded)::after { content: 'Afficher les consignes ▾'; display: block; font-size: 12px; color: var(--muted); margin-top: -2px; }
 .alert-overlay.compact .advice { padding: 6px 10px; }
 .alert-overlay.compact .alert-foot { margin-top: 8px; }
+/* Bandeau de notification (en haut, comme un séisme) : sans cadre clignotant, texte en entier. */
+.alert-overlay.notice .alert-frame { display: none; }
+.alert-overlay.notice .alert-body { cursor: default; }
+.alert-overlay.notice .alert-body:not(.expanded) p { display: block; overflow: visible; }
+.alert-overlay.notice .alert-body:not(.expanded)::after { content: none; }
+.alert-overlay.notice #ovDesc { white-space: pre-wrap; }
 
 /* ---------- Mises à jour ---------- */
 .update-box { display: flex; flex-direction: column; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }

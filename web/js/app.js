@@ -305,6 +305,12 @@
   }
 
   document.addEventListener('click', (e) => {
+    const noticeItem = e.target.closest('[data-notice]');
+    if (noticeItem) {
+      const n = notices.find((x) => x.id === noticeItem.dataset.notice);
+      if (n && (!current || current.__notice)) showNoticeBanner(n);
+      return;
+    }
     const item = e.target.closest('[data-alert]');
     if (item) {
       const a = alerts.find((x) => x.id === item.dataset.alert);
@@ -372,7 +378,7 @@
   }
 
   function noticeItemHtml(n) {
-    return `<div class="alert-item notice-item" style="border-left-color:${NOTICE_COLOR}">
+    return `<div class="alert-item notice-item" data-notice="${n.id}" style="border-left-color:${NOTICE_COLOR}">
       <div class="t">${n.test ? '<span class="tag" style="background:#6d28d9;color:#fff">TEST</span>' : ''}${escapeHtml(n.title)}</div>
       ${n.body ? `<div class="desc">${escapeHtml(n.body)}</div>` : ''}
       <div class="m">${M.relativeTime(n.createdAt)} · ${escapeHtml(M.departmentsLabel(n.departments, 3))}</div>
@@ -393,8 +399,42 @@
     if (noticeSeen.has(n.id)) return;
     markNoticeSeen(n.id);
     if (!noticeForMe(n)) return;
-    toast(`🔔 ${n.title}`, n.body, NOTICE_COLOR, null, { duration: 30000, className: 'notice' });
+    // Bandeau en haut (comme un séisme) ; derrière une alerte déjà affichée, il attend son tour.
+    if (current && !current.__notice) {
+      queue.push({ ...n, __notice: true });
+      $('ovQueue').textContent = `+${queue.length} autre(s) alerte(s)`;
+    } else {
+      showNoticeBanner(n);
+    }
+    if (settings.sound) window.MAlertSound.play({ level: 1, category: 'meteo', phenomenon: 0 }, { volume: settings.volume, loop: false });
     systemNotification(`${n.test ? '[TEST] ' : ''}🔔 ${n.title}`, n.body || M.departmentsLabel(n.departments, 3), { tag: `notice-${n.id}` });
+    // Application de bureau : la fenêtre revient au premier plan, comme pour une alerte.
+    if (native) native.alert({ level: 1, front: settings.front });
+  }
+
+  /** Bandeau compact en haut de l'écran pour une notification de M-Alert. */
+  function showNoticeBanner(n) {
+    current = { ...n, __notice: true };
+    const ov = $('alertOverlay');
+    ov.className = 'alert-overlay compact notice';
+    ov.style.setProperty('--c', NOTICE_COLOR);
+    ov.style.setProperty('--ct', '#0b1220');
+    $('ovLevel').textContent = '🔔 Notification';
+    $('ovPhen').textContent = 'M-Alert';
+    $('ovTest').classList.toggle('hidden', !n.test);
+    $('ovTime').textContent = M.formatDateTime(n.createdAt);
+    $('ovTitle').textContent = n.title;
+    $('ovDeps').textContent = M.departmentsLabel(n.departments, 8);
+    $('ovEpi').classList.add('hidden');
+    $('ovDesc').textContent = n.body || '';
+    $('ovAdviceWrap').classList.add('hidden');
+    $('ovValid').textContent = 'Consultable 24 h dans « Notifications »';
+    $('ovQueue').textContent = queue.length ? `+${queue.length} autre(s) alerte(s)` : '';
+    $('ovMute').classList.add('hidden');
+    ov.querySelector('.alert-banner').scrollTop = 0;
+    ov.querySelector('.alert-body').classList.remove('expanded');
+    $('ovAck').focus({ preventScroll: true });
+    if (!n.departments.includes('ALL')) focusAlert(n);
   }
 
   /** Notifications reçues à la connexion : celles envoyées pendant que l'application était fermée s'affichent. */
@@ -506,11 +546,12 @@
   function acknowledge() {
     pendingSound = null;
     window.MAlertSound.stop();
-    markSeen(current && current.id);
+    if (current && !current.__notice) markSeen(current.id);
     current = null;
     const next = queue.shift();
     if (next) {
-      showOverlay(next, { silent: true });
+      if (next.__notice) showNoticeBanner(next);
+      else showOverlay(next, { silent: true });
       return;
     }
     $('alertOverlay').classList.add('hidden');
@@ -570,7 +611,8 @@
       return;
     }
 
-    if (current) queue.push(alert);
+    // Une alerte passe devant une notification affichée (qui reste dans la liste « Notifications »).
+    if (current && !current.__notice) queue.push(alert);
     else showOverlay(alert);
     $('ovQueue').textContent = queue.length ? `+${queue.length} autre(s) alerte(s)` : '';
     focusAlert(alert);
@@ -733,7 +775,6 @@
         const old = vigilance;
         vigilance = msg.vigilance;
         alerts = (msg.alerts || []).filter(M.isActive);
-        if (msg.notices) setNotices(msg.notices);
         renderAll();
         checkVigilanceChange(old, vigilance);
         // Alertes envoyées (ou étendues à mon département) pendant que l'application était fermée
@@ -743,6 +784,8 @@
           delete a.__updated;
           trigger(a, { updated });
         });
+        // Notifications manquées : après les alertes, qui passent devant.
+        if (msg.notices) setNotices(msg.notices);
         break;
       }
       case 'alert':
@@ -779,10 +822,14 @@
         renderNotices();
         showNotice(msg.notice);
         break;
-      case 'notice-delete':
+      case 'notice-delete': {
+        const qi = queue.findIndex((x) => x.__notice && x.id === msg.notice.id);
+        if (qi >= 0) queue.splice(qi, 1);
+        if (current && current.__notice && current.id === msg.notice.id) acknowledge();
         notices = notices.filter((n) => n.id !== msg.notice.id);
         renderNotices();
         break;
+      }
       case 'vigilance': {
         const old = vigilance;
         vigilance = msg.vigilance;
