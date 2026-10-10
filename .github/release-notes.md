@@ -1,5 +1,8 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.6.2
+- **Notifications de M-Alert** : leur notification système reste affichée jusqu'au clic, comme celles des alertes orange et rouge. Sous KDE Plasma notamment, elle pouvait ne pas apparaître.
+
 ## Nouveautés de la 1.6.1
 - **Notifications push** : les notifications de M-Alert arrivent désormais aussi sur les téléphones et navigateurs où M-Alert est fermé, même si la version web n'a pas encore été rouverte depuis la mise à jour.
 - La version web vérifie ses mises à jour au démarrage puis toutes les heures.
