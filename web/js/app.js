@@ -1104,6 +1104,14 @@
   renderAll();
   connect();
   if (pushSupported && settings.push) syncPush();
+  // Service worker (notifications push) toujours à jour : sinon le navigateur ne le vérifie qu'à la
+  // visite du site ou toutes les 24 h, et une ancienne version ignorerait les nouveaux messages.
+  if (pushSupported) {
+    const refreshWorker = () => navigator.serviceWorker.getRegistration()
+      .then((reg) => reg && reg.update()).catch(() => {});
+    refreshWorker();
+    setInterval(refreshWorker, 3600 * 1000);
+  }
   if (!settings.department) openSettings({ welcome: true });
   else setTimeout(() => map.focus(myDepartments()), 300);
 })();

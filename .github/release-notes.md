@@ -1,5 +1,9 @@
 Alertes météo en temps réel par département, avec la carte de vigilance Météo-France.
 
+## Nouveautés de la 1.6.1
+- **Notifications push** : les notifications de M-Alert arrivent désormais aussi sur les téléphones et navigateurs où M-Alert est fermé, même si la version web n'a pas encore été rouverte depuis la mise à jour.
+- La version web vérifie ses mises à jour au démarrage puis toutes les heures.
+
 ## Nouveautés de la 1.6.0
 - **Notifications de M-Alert** 🔔 : des messages d'information (sans alerte) s'affichent dans l'application et en notification, et restent consultables 24 h dans la nouvelle section « Notifications ». Reçus aussi à l'ouverture si M-Alert était fermé. Désactivables dans ⚙ Réglages.
 - **Alertes silencieuses** : certaines alertes peuvent être affichées sur la carte et dans la liste sans son, fenêtre d'alerte ni notification.
